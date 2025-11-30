@@ -11,8 +11,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-2xl font-bold text-foreground">Command Dashboard</h1>
-        <p class="text-muted mt-1">Real-time attendance monitoring</p>
+        <h1 class="text-2xl font-bold text-foreground">Student Attendance Dashboard</h1>
+        <p class="text-muted mt-1">Real-time student attendance monitoring</p>
       </div>
       <div class="flex items-center gap-4">
         <div class="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-lg">
@@ -70,7 +70,7 @@
         <p class="text-sm text-muted mt-1">Late Arrivals</p>
       </div>
 
-      <!-- Enrolled Users -->
+      <!-- Enrolled Students -->
       <div class="bg-card border border-border rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">
           <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
@@ -80,7 +80,7 @@
           </div>
         </div>
         <p class="text-3xl font-bold text-foreground">900</p>
-        <p class="text-sm text-muted mt-1">Enrolled Users</p>
+        <p class="text-sm text-muted mt-1">Enrolled Students</p>
       </div>
     </div>
 
@@ -135,7 +135,7 @@
       <!-- Recent Activity -->
       <div class="bg-card border border-border rounded-xl p-6">
         <div class="flex items-center justify-between mb-6">
-          <h3 class="font-semibold text-foreground">Recent Activity</h3>
+          <h3 class="font-semibold text-foreground">Recent Student Activity</h3>
           <span class="w-2 h-2 bg-primary rounded-full pulse-dot"></span>
         </div>
         <div class="space-y-4" id="activityFeed">
@@ -172,18 +172,18 @@
             <span class="w-2 h-2 bg-primary rounded-full"></span>
           </div>
         </div>
-        <a href="reports.html" class="mt-4 block text-center text-sm text-primary hover:underline">View All Activity →</a>
+        <a href="/reports" class="mt-4 block text-center text-sm text-primary hover:underline">View All Activity →</a>
       </div>
     </div>
 
-    <!-- Department Breakdown -->
+    <!-- Class Breakdown -->
     <div class="mt-6 bg-card border border-border rounded-xl p-6">
-      <h3 class="font-semibold text-foreground mb-6">Department Breakdown</h3>
+      <h3 class="font-semibold text-foreground mb-6">Class Breakdown</h3>
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead>
             <tr class="border-b border-border">
-              <th class="text-left py-3 px-4 text-sm font-medium text-muted">Department</th>
+              <th class="text-left py-3 px-4 text-sm font-medium text-muted">Class</th>
               <th class="text-left py-3 px-4 text-sm font-medium text-muted">Total</th>
               <th class="text-left py-3 px-4 text-sm font-medium text-muted">Present</th>
               <th class="text-left py-3 px-4 text-sm font-medium text-muted">Absent</th>
@@ -192,7 +192,7 @@
           </thead>
           <tbody class="divide-y divide-border">
             <tr>
-              <td class="py-3 px-4 text-sm text-foreground">Engineering</td>
+              <td class="py-3 px-4 text-sm text-foreground">BSCS5</td>
               <td class="py-3 px-4 text-sm text-muted">250</td>
               <td class="py-3 px-4 text-sm text-primary">238</td>
               <td class="py-3 px-4 text-sm text-danger">12</td>
@@ -206,7 +206,7 @@
               </td>
             </tr>
             <tr>
-              <td class="py-3 px-4 text-sm text-foreground">Marketing</td>
+              <td class="py-3 px-4 text-sm text-foreground">BSCS4</td>
               <td class="py-3 px-4 text-sm text-muted">150</td>
               <td class="py-3 px-4 text-sm text-primary">142</td>
               <td class="py-3 px-4 text-sm text-danger">8</td>
@@ -220,7 +220,7 @@
               </td>
             </tr>
             <tr>
-              <td class="py-3 px-4 text-sm text-foreground">Operations</td>
+              <td class="py-3 px-4 text-sm text-foreground">BSCS6</td>
               <td class="py-3 px-4 text-sm text-muted">300</td>
               <td class="py-3 px-4 text-sm text-primary">275</td>
               <td class="py-3 px-4 text-sm text-danger">25</td>
@@ -234,7 +234,7 @@
               </td>
             </tr>
             <tr>
-              <td class="py-3 px-4 text-sm text-foreground">Human Resources</td>
+              <td class="py-3 px-4 text-sm text-foreground">BSCS7</td>
               <td class="py-3 px-4 text-sm text-muted">200</td>
               <td class="py-3 px-4 text-sm text-primary">192</td>
               <td class="py-3 px-4 text-sm text-danger">8</td>
