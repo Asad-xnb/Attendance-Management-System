@@ -18,13 +18,17 @@
   },
   "homepage": "https://github.com/Asad-xnb/Attendance-Management-System#readme",
   "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
     "bcryptjs": "^3.0.3",
+    "canvas": "^3.2.0",
     "connect-mongodb-session": "^3.1.1",
     "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
+    "face-api.js": "^0.22.2",
     "mongoose": "^9.0.0",
+    "multer": "^2.0.2",
     "nodemon": "^3.1.11"
   }
 }

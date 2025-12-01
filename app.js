@@ -9,6 +9,7 @@ const baseRoutes = require('./routes/base.routes');
 const authRoutes = require('./routes/auth.routes');
 const studentRoutes = require('./routes/student.routes');
 const adminRoutes = require('./routes/admin.routes');
+const enrollmentRoutes = require('./routes/enrollment.routes');
 const { attachUser } = require('./middleware/auth');
 
 const app = express();
@@ -53,11 +54,12 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ams-ai')
     
     // Attach user data to all views
     app.use(attachUser);
-
     // Routes
     app.use('/', authRoutes);
     app.use('/', baseRoutes);
     app.use('/student', studentRoutes);
+    app.use('/admin', adminRoutes);
+    app.use('/api', enrollmentRoutes);
     app.use('/admin', adminRoutes);
 
     const PORT = process.env.PORT || 3000;
