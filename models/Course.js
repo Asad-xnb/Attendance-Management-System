@@ -18,15 +18,12 @@ const courseSchema = new mongoose.Schema({
     ref: 'Class',
     required: true
   },
+  instructorRef: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Admin',
+    required: true
+  },
   totalSessions: {
-    type: Number,
-    default: 0
-  },
-  instructor: {
-    type: String,
-    trim: true
-  },
-  createdAt: {
     type: Date,
     default: Date.now
   }

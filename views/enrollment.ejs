@@ -23,43 +23,46 @@
           Student Information
         </h3>
         <form id="enrollmentForm" class="space-y-5">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-foreground mb-2">First Name</label>
-              <input type="text" placeholder="John" class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-foreground mb-2">Last Name</label>
-              <input type="text" placeholder="Doe" class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Username</label>
+            <input type="text" name="username" required placeholder="e.g., john_doe" class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Full Name</label>
+            <input type="text" name="fullName" required placeholder="e.g., John Doe" class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Roll Number</label>
+            <input type="text" name="rollNo" required placeholder="e.g., BSCS-21-001" class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Email</label>
+            <input type="email" name="email" required placeholder="e.g., john@example.com" class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Password</label>
+            <div class="relative">
+              <input type="password" id="studentPassword" name="password" required placeholder="Enter password" class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+              <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground">
+                <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                <svg id="eyeSlashIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                </svg>
+              </button>
             </div>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-foreground mb-2">Student ID</label>
-            <input type="text" placeholder="FC-XXXX" class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-          </div>
-
-
-          <div>
-            <label class="block text-sm font-medium text-foreground mb-2">Department</label>
-            <select class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+            <label class="block text-sm font-medium text-foreground mb-2">Assign to Class</label>
+            <select name="classRef" required id="classSelect" class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
               <option value="">Select Class</option>
-               <option value="BSCS5">BSCS5</option>
-              <option value="BSCS4">BSCS4</option>
-              <option value="BSCS6">BSCS6</option>
-              <option value="BSCS7">BSCS7</option>
-              <option value="BSCS8">BSCS8</option>
-             
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-foreground mb-2">Role</label>
-            <select class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-              <option value="Student">Student</option>
-              <option value="Teacher">Teacher</option>
-              <option value="Staff">Staff</option>
-              <option value="Administrator">Administrator</option>
             </select>
           </div>
         </form>
@@ -160,12 +163,38 @@
           </button>
         </div>
       </div>
-    </div>
-  </main>
-
   <script>
     let stream = null;
     let sampleCount = 0;
+    let capturedDescriptors = [];
+
+    async function loadClasses() {
+      try {
+        const response = await fetch('/admin/api/classes');
+        const classes = await response.json();
+        const classSelect = document.getElementById('classSelect');
+        const options = classes.map(c => `<option value="${c._id}">${c.name} ${c.semester} - ${c.section}</option>`).join('');
+        classSelect.innerHTML = '<option value="">Select Class</option>' + options;
+      } catch (error) {
+        console.error('Error loading classes:', error);
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const input = document.getElementById('studentPassword');
+      const eyeIcon = document.getElementById('eyeIcon');
+      const eyeSlashIcon = document.getElementById('eyeSlashIcon');
+      
+      if (input.type === 'password') {
+        input.type = 'text';
+        eyeIcon.classList.add('hidden');
+        eyeSlashIcon.classList.remove('hidden');
+      } else {
+        input.type = 'password';
+        eyeIcon.classList.remove('hidden');
+        eyeSlashIcon.classList.add('hidden');
+      }
+    }
 
     async function startCamera() {
       try {
@@ -189,7 +218,8 @@
       document.getElementById('sampleCount').textContent = sampleCount;
       document.getElementById('captureProgress').style.width = (sampleCount * 20) + '%';
       
-      // Simulate captured sample
+      // TODO: Extract face descriptor using Face-api.js here
+      // For now, simulate capture
       const sampleDiv = document.getElementById('sample' + sampleCount);
       sampleDiv.innerHTML = '<svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
       sampleDiv.classList.add('border-primary', 'bg-primary/10');
@@ -199,6 +229,48 @@
         document.getElementById('captureBtn').disabled = true;
         document.getElementById('faceGuide').classList.remove('border-primary/50');
         document.getElementById('faceGuide').classList.add('border-primary');
+      }
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const formData = new FormData(document.getElementById('enrollmentForm'));
+      const data = Object.fromEntries(formData);
+      
+      // Validate all fields
+      if (!data.username || !data.fullName || !data.rollNo || !data.email || !data.password || !data.classRef) {
+        alert('Please fill all fields');
+        return;
+      }
+      
+      if (sampleCount < 5) {
+        alert('Please capture all 5 face samples');
+        return;
+      }
+      
+      // TODO: Add face descriptors when Face-api.js is integrated
+      data.faceDescriptors = capturedDescriptors;
+      
+      try {
+        const response = await fetch('/admin/api/students', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+          alert('Student enrolled successfully!');
+          window.location.href = '/admin/manage';
+        } else {
+          const error = await response.json();
+          alert('Error: ' + error.error);
+        }
+      } catch (error) {
+        alert('Error enrolling student');
+      }
+    });
+
+    loadClasses();
+  </script>ument.getElementById('faceGuide').classList.add('border-primary');
       }
     }
   </script>

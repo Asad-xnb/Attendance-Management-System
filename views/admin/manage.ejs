@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include("../includes/head.ejs", { title: "Manage System" }) %>
+</head>
+<body class="bg-background min-h-screen">
+  <!-- Sidebar -->
+  <%- include("../includes/sidebar.ejs", {active: "dashboard"}) %>
+
+  <!-- Main Content -->
+  <main class="ml-64 p-8">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-foreground">System Management</h1>
+      <p class="text-muted mt-1">Manage teachers, courses, classes, and students</p>
+    </div>
+
+    <!-- Management Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Add Teacher -->
+      <div class="bg-card border border-border rounded-xl p-6 hover:border-primary transition-all cursor-pointer" onclick="openModal('teacherModal')">
+        <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4">
+          <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-foreground mb-2">Add Teacher</h3>
+        <p class="text-sm text-muted">Register new teachers</p>
+      </div>
+
+      <!-- Add Class -->
+      <div class="bg-card border border-border rounded-xl p-6 hover:border-primary transition-all cursor-pointer" onclick="openModal('classModal')">
+        <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-4">
+          <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-foreground mb-2">Add Class</h3>
+        <p class="text-sm text-muted">Create new classes (BSCS 1-8)</p>
+      </div>
+
+      <!-- Add Course -->
+      <div class="bg-card border border-border rounded-xl p-6 hover:border-primary transition-all cursor-pointer" onclick="openModal('courseModal')">
+        <div class="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center mb-4">
+          <svg class="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-foreground mb-2">Add Course</h3>
+        <p class="text-sm text-muted">Create courses & assign to classes</p>
+      </div>
+
+      <!-- Add Student -->
+      <div class="bg-card border border-border rounded-xl p-6 hover:border-primary transition-all cursor-pointer" onclick="window.location.href='/enrollment'">
+        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+          <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-foreground mb-2">Enroll Student</h3>
+        <p class="text-sm text-muted">Register with facial recognition</p>
+      </div>
+    </div>
+
+    <!-- Overview Tables -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Teachers List -->
+      <div class="bg-card border border-border rounded-xl p-6">
+        <h3 class="font-semibold text-foreground mb-4">Teachers</h3>
+        <div class="space-y-3" id="teachersList">
+          <p class="text-sm text-muted">No teachers added yet</p>
+        </div>
+      </div>
+
+      <!-- Classes List -->
+      <div class="bg-card border border-border rounded-xl p-6">
+        <h3 class="font-semibold text-foreground mb-4">Classes</h3>
+        <div class="space-y-3" id="classesList">
+          <p class="text-sm text-muted">No classes created yet</p>
+        </div>
+      </div>
+
+      <!-- Courses List -->
+      <div class="bg-card border border-border rounded-xl p-6">
+        <h3 class="font-semibold text-foreground mb-4">Courses</h3>
+        <div class="space-y-3" id="coursesList">
+          <p class="text-sm text-muted">No courses added yet</p>
+        </div>
+      </div>
+
+      <!-- Students List -->
+      <div class="bg-card border border-border rounded-xl p-6">
+        <h3 class="font-semibold text-foreground mb-4">Students</h3>
+        <div class="space-y-3" id="studentsList">
+          <p class="text-sm text-muted">No students registered yet</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Add Teacher Modal -->
+  <div id="teacherModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal('teacherModal')">
+    <div class="bg-card border border-border rounded-xl p-6 w-full max-w-md">
+      <h3 class="text-xl font-semibold text-foreground mb-4">Add Teacher</h3>
+      <form id="teacherForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-2">Username</label>
+          <input type="text" name="username" required class="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-2">Full Name</label>
+          <input type="text" name="fullName" required class="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-2">Email</label>
+          <input type="email" name="email" required class="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-2">Password</label>
+          <div class="relative">
+            <input type="password" id="teacherPassword" name="password" required class="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            <button type="button" onclick="togglePasswordVisibility('teacherPassword', 'teacherEye', 'teacherEyeSlash')" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground">
+              <svg id="teacherEye" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              <svg id="teacherEyeSlash" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="flex gap-3 pt-4">
+          <button type="submit" class="flex-1 px-4 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary/90">Add Teacher</button>
+          <button type="button" onclick="closeModal('teacherModal')" class="px-4 py-2 bg-background border border-border text-foreground rounded-lg hover:bg-card">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Class Modal -->
+  <div id="classModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal('classModal')">
+    <div class="bg-card border border-border rounded-xl p-6 w-full max-w-md">
+      <h3 class="text-xl font-semibold text-foreground mb-4">Add Class</h3>
+      <form id="classForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-2">Class Name</label>
+          <select name="name" required class="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="">Select Class</option>
+            <option value="BSCS">BSCS</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-2">Semester</label>
+          <select name="semester" required class="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="">Select Semester</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-2">Section</label>
+          <input type="text" name="section" value="A" required class="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-2">Academic Year</label>
+          <input type="text" name="academicYear" value="2024-2025" required class="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div class="flex gap-3 pt-4">
+          <button type="submit" class="flex-1 px-4 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary/90">Create Class</button>
+          <button type="button" onclick="closeModal('classModal')" class="px-4 py-2 bg-background border border-border text-foreground rounded-lg hover:bg-card">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Course Modal -->
+  <div id="courseModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal('courseModal')">
+    <div class="bg-card border border-border rounded-xl p-6 w-full max-w-md">
+      <h3 class="text-xl font-semibold text-foreground mb-4">Add Course</h3>
+      <form id="courseForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-2">Course Name</label>
+          <input type="text" name="name" required placeholder="e.g., Data Structures" class="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-2">Course Code</label>
+          <input type="text" name="code" required placeholder="e.g., CS201" class="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-2">Assign to Class</label>
+          <select name="classRef" required id="courseClassSelect" class="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="">Select Class</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-2">Assign Instructor</label>
+          <select name="instructorRef" required id="courseInstructorSelect" class="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="">Select Teacher</option>
+          </select>
+        </div>
+        <div class="flex gap-3 pt-4">
+          <button type="submit" class="flex-1 px-4 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary/90">Add Course</button>
+          <button type="button" onclick="closeModal('courseModal')" class="px-4 py-2 bg-background border border-border text-foreground rounded-lg hover:bg-card">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.remove('hidden');
+      if (modalId === 'courseModal') {
+        loadClasses();
+        loadTeachers();
+      }
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+    }
+
+    function togglePasswordVisibility(inputId, eyeId, eyeSlashId) {
+      const input = document.getElementById(inputId);
+      const eyeIcon = document.getElementById(eyeId);
+      const eyeSlashIcon = document.getElementById(eyeSlashId);
+      
+      if (input.type === 'password') {
+        input.type = 'text';
+        eyeIcon.classList.add('hidden');
+        eyeSlashIcon.classList.remove('hidden');
+      } else {
+        input.type = 'password';
+        eyeIcon.classList.remove('hidden');
+        eyeSlashIcon.classList.add('hidden');
+      }
+    }
+
+    async function loadClasses() {
+      try {
+        const response = await fetch('/admin/api/classes');
+        const classes = await response.json();
+        
+        const courseSelect = document.getElementById('courseClassSelect');
+        const options = classes.map(c => `<option value="${c._id}">${c.name} ${c.semester} - ${c.section}</option>`).join('');
+        
+        if (courseSelect) courseSelect.innerHTML = '<option value="">Select Class</option>' + options;
+      } catch (error) {
+        console.error('Error loading classes:', error);
+      }
+    }
+
+    async function loadTeachers() {
+      try {
+        const response = await fetch('/admin/api/teachers');
+        const teachers = await response.json();
+        
+        const instructorSelect = document.getElementById('courseInstructorSelect');
+        const options = teachers.map(t => `<option value="${t._id}">${t.fullName}</option>`).join('');
+        
+        if (instructorSelect) instructorSelect.innerHTML = '<option value="">Select Teacher</option>' + options;
+      } catch (error) {
+        console.error('Error loading teachers:', error);
+      }
+    }
+
+    async function loadData() {
+      try {
+        // Fetch all data in parallel
+        const [teachersRes, classesRes, coursesRes, studentsRes] = await Promise.all([
+          fetch('/admin/api/teachers'),
+          fetch('/admin/api/classes'),
+          fetch('/admin/api/courses'),
+          fetch('/admin/api/students')
+        ]);
+
+        const [teachers, classes, courses, students] = await Promise.all([
+          teachersRes.json(),
+          classesRes.json(),
+          coursesRes.json(),
+          studentsRes.json()
+        ]);
+
+        // Update teachers list
+        const teachersList = document.getElementById('teachersList');
+        if (teachers.length > 0) {
+          teachersList.innerHTML = teachers.map(t => `
+            <div class="flex items-center justify-between p-3 bg-background rounded-lg">
+              <div>
+                <p class="text-sm font-medium text-foreground">${t.fullName}</p>
+                <p class="text-xs text-muted">${t.email}</p>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // Update classes list
+        const classesList = document.getElementById('classesList');
+        if (classes.length > 0) {
+          classesList.innerHTML = classes.map(c => `
+            <div class="flex items-center justify-between p-3 bg-background rounded-lg">
+              <div>
+                <p class="text-sm font-medium text-foreground">${c.name} ${c.semester} - ${c.section}</p>
+                <p class="text-xs text-muted">${c.academicYear} • ${c.students.length} students</p>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // Update courses list
+        const coursesList = document.getElementById('coursesList');
+        if (courses.length > 0) {
+          coursesList.innerHTML = courses.map(c => `
+            <div class="flex items-center justify-between p-3 bg-background rounded-lg">
+              <div>
+                <p class="text-sm font-medium text-foreground">${c.name}</p>
+                <p class="text-xs text-muted">${c.code}${c.instructorRef ? ' • ' + c.instructorRef.fullName : ''}</p>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // Update students list
+        const studentsList = document.getElementById('studentsList');
+        if (students.length > 0) {
+          studentsList.innerHTML = students.map(s => `
+            <div class="flex items-center justify-between p-3 bg-background rounded-lg">
+              <div>
+                <p class="text-sm font-medium text-foreground">${s.fullName}</p>
+                <p class="text-xs text-muted">${s.rollNo} • ${s.email}</p>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    }
+
+    document.getElementById('teacherForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
+      
+      try {
+        const response = await fetch('/admin/api/teachers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+          closeModal('teacherModal');
+          e.target.reset();
+          loadData();
+          alert('Teacher added successfully!');
+        } else {
+          const error = await response.json();
+          alert('Error: ' + error.error);
+        }
+      } catch (error) {
+        alert('Error adding teacher');
+      }
+    });
+
+    document.getElementById('classForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
+      data.department = 'Computer Science';
+      
+      try {
+        const response = await fetch('/admin/api/classes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+          closeModal('classModal');
+          e.target.reset();
+          loadData();
+          alert('Class created successfully!');
+        } else {
+          const error = await response.json();
+          alert('Error: ' + error.error);
+        }
+      } catch (error) {
+        alert('Error creating class');
+      }
+    });
+
+    document.getElementById('courseForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
+      
+      try {
+        const response = await fetch('/admin/api/courses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+          closeModal('courseModal');
+          e.target.reset();
+          loadData();
+          alert('Course added successfully!');
+        } else {
+          const error = await response.json();
+          alert('Error: ' + error.error);
+        }
+      } catch (error) {
+        alert('Error adding course');
+      }
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
