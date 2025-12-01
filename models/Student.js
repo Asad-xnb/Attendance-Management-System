@@ -33,8 +33,8 @@ const studentSchema = new mongoose.Schema({
     ref: 'Class',
     required: true
   },
-  faceDescriptors: {
-    type: [[Number]], // Array of arrays (multiple face samples, each with 128 floats)
+  faceDescriptor: {
+    type: [Number], // Single averaged 128-dimensional face descriptor
     default: []
   },
   attendanceRecords: [{

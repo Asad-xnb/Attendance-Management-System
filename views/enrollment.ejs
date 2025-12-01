@@ -437,7 +437,7 @@
         const result = await response.json();
         
         if (response.ok) {
-          alert(`Student enrolled successfully! ${result.descriptorCount} face descriptors extracted.`);
+          alert(`Student enrolled successfully! ${result.samplesProcessed} face samples processed and averaged into a single descriptor.`);
           window.location.href = '/admin/manage';
         } else {
           alert('Error: ' + result.error);

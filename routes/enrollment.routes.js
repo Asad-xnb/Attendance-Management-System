@@ -60,6 +60,29 @@ const upload = multer({
   }
 });
 
+// Calculate average descriptor from multiple descriptors
+function calculateAverageDescriptor(descriptors) {
+  if (descriptors.length === 0) return null;
+  if (descriptors.length === 1) return descriptors[0];
+  
+  const descriptorLength = descriptors[0].length; // Should be 128
+  const averageDescriptor = new Array(descriptorLength).fill(0);
+  
+  // Sum all descriptors
+  for (const descriptor of descriptors) {
+    for (let i = 0; i < descriptorLength; i++) {
+      averageDescriptor[i] += descriptor[i];
+    }
+  }
+  
+  // Divide by count to get average
+  for (let i = 0; i < descriptorLength; i++) {
+    averageDescriptor[i] /= descriptors.length;
+  }
+  
+  return averageDescriptor;
+}
+
 // Extract face descriptors from uploaded images
 async function extractFaceDescriptors(imagePaths) {
   const descriptors = [];
@@ -140,6 +163,13 @@ router.post('/enroll', upload.array('images', 5), async (req, res) => {
       return res.status(400).json({ error: 'No faces detected in uploaded images. Please provide clear face images.' });
     }
     
+    // Calculate average descriptor from all samples
+    const averageDescriptor = calculateAverageDescriptor(faceDescriptors);
+    
+    if (!averageDescriptor) {
+      return res.status(400).json({ error: 'Failed to generate face descriptor. Please try again.' });
+    }
+    
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     
@@ -151,7 +181,7 @@ router.post('/enroll', upload.array('images', 5), async (req, res) => {
       email: email.toLowerCase(),
       password: hashedPassword,
       classRef,
-      faceDescriptors,
+      faceDescriptor: averageDescriptor,
       isEnrolled: true
     });
     
@@ -163,7 +193,8 @@ router.post('/enroll', upload.array('images', 5), async (req, res) => {
     res.json({ 
       success: true, 
       message: 'Student enrolled successfully',
-      descriptorCount: faceDescriptors.length
+      samplesProcessed: faceDescriptors.length,
+      descriptorGenerated: true
     });
   } catch (error) {
     console.error('Enrollment error:', error);
