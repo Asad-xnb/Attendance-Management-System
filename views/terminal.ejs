@@ -116,10 +116,27 @@
     async function loadTeacherData() {
       try {
         const response = await fetch('/terminal/api/teacher-data');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
+        
+        console.log('Teacher data loaded:', data);
         
         const classSelect = document.getElementById('classSelect');
         classSelect.innerHTML = '<option value="">Choose a class...</option>';
+        
+        if (!data.classes || data.classes.length === 0) {
+          console.warn('No classes found for this teacher');
+          const option = document.createElement('option');
+          option.value = '';
+          option.textContent = 'No classes assigned';
+          option.disabled = true;
+          classSelect.appendChild(option);
+          return;
+        }
         
         data.classes.forEach(cls => {
           const option = document.createElement('option');
@@ -128,8 +145,11 @@
           option.dataset.courses = JSON.stringify(cls.courses);
           classSelect.appendChild(option);
         });
+        
+        console.log(`Loaded ${data.classes.length} classes`);
       } catch (error) {
         console.error('Error loading teacher data:', error);
+        alert('Failed to load teacher data: ' + error.message);
       }
     }
 
@@ -371,7 +391,7 @@
       
       updateStatus('standby', 'Standby');
     } updateStatus('standby', 'Standby');
-    }
+    
 
     async function recognizeFaces() {
       if (!isRecognitionActive) return;
