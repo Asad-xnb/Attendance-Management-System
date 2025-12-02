@@ -70,7 +70,10 @@ router.post('/api/mark-attendance', isAuthenticated, hasRole('admin', 'teacher')
     const { studentId, courseId, classId, confidenceScore } = req.body;
     
     if (!studentId || !courseId || !classId) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        details: { studentId: !!studentId, courseId: !!courseId, classId: !!classId }
+      });
     }
     
     const sessionDate = new Date();
@@ -111,10 +114,15 @@ router.post('/api/mark-attendance', isAuthenticated, hasRole('admin', 'teacher')
     // Get student info for response
     const student = await Student.findById(studentId).select('fullName rollNo').lean();
     
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+    
     res.json({
       success: true,
       attendance: {
         ...attendance.toObject(),
+        studentRef: studentId,
         student: student
       },
       status: status
@@ -130,6 +138,10 @@ router.get('/api/today-attendance/:courseId', isAuthenticated, hasRole('admin', 
   try {
     const { courseId } = req.params;
     
+    if (!courseId) {
+      return res.status(400).json({ error: 'Course ID is required', attendance: [] });
+    }
+    
     const sessionDate = new Date();
     sessionDate.setHours(0, 0, 0, 0);
     
@@ -141,20 +153,23 @@ router.get('/api/today-attendance/:courseId', isAuthenticated, hasRole('admin', 
     .sort({ timestamp: -1 })
     .lean();
     
-    // Transform the data to match expected format
-    const formattedAttendance = attendance.map(record => ({
-      ...record,
-      student: {
-        _id: record.studentRef._id,
-        fullName: record.studentRef.fullName,
-        rollNo: record.studentRef.rollNo
-      }
-    }));
+    // Filter out records with null studentRef and transform the data
+    const formattedAttendance = attendance
+      .filter(record => record.studentRef && record.studentRef._id)
+      .map(record => ({
+        ...record,
+        studentRef: record.studentRef._id,
+        student: {
+          _id: record.studentRef._id,
+          fullName: record.studentRef.fullName,
+          rollNo: record.studentRef.rollNo
+        }
+      }));
     
     res.json({ attendance: formattedAttendance });
   } catch (error) {
     console.error('Error fetching attendance:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message, attendance: [] });
   }
 });
 

@@ -185,7 +185,7 @@
         if (studentDescriptors.length > 0 && typeof faceapi !== 'undefined') {
           const labeledDescriptors = studentDescriptors.map(student => {
             const descriptors = [new Float32Array(student.faceDescriptor)];
-            return new faceapi.LabeledFaceDescriptors(student._id, descriptors);
+            return new faceapi.LabeledFaceDescriptors(student._id.toString(), descriptors);
           });
           faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
         }
@@ -215,24 +215,34 @@
     async function loadTodayAttendance() {
       try {
         const response = await fetch(`/terminal/api/today-attendance/${selectedCourseId}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         const activityFeed = document.getElementById('activityFeed');
         activityFeed.innerHTML = '';
         
-        if (data.attendance.length === 0) {
+        if (!data.attendance || data.attendance.length === 0) {
           activityFeed.innerHTML = '<div class="text-center text-muted py-8"><p class="text-sm">No attendance marked yet</p></div>';
           return;
         }
         
         data.attendance.forEach(record => {
-          markedStudents.add(record.studentRef._id);
+          const studentId = record.studentRef?._id || record.studentRef;
+          if (studentId) {
+            markedStudents.add(studentId.toString());
+          }
           addActivityItem(record);
         });
         
         updateStats();
       } catch (error) {
         console.error('Error loading attendance:', error);
+        const activityFeed = document.getElementById('activityFeed');
+        activityFeed.innerHTML = '<div class="text-center text-muted py-8"><p class="text-sm">Failed to load attendance</p></div>';
       }
     }
 
@@ -386,7 +396,7 @@
           const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
           const box = detection.detection.box;
           
-          const isMarked = markedStudents.has(bestMatch.label);
+          const isMarked = markedStudents.has(bestMatch.label.toString());
           const isMatch = bestMatch.label !== 'unknown' && bestMatch.distance < 0.6;
           
           ctx.strokeStyle = isMarked ? '#10b981' : (isMatch ? '#f59e0b' : '#ef4444');
@@ -414,23 +424,39 @@
     }
 
     async function markAttendance(studentId, confidenceScore) {
-      if (markedStudents.has(studentId)) return;
+      if (!studentId || !selectedCourseId || !selectedClassId) {
+        console.error('Missing required data for attendance marking');
+        return;
+      }
+      
+      if (markedStudents.has(studentId.toString())) return;
       
       try {
         const response = await fetch('/terminal/api/mark-attendance', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ studentId, courseId: selectedCourseId, classId: selectedClassId, confidenceScore })
+          body: JSON.stringify({ 
+            studentId: studentId.toString(), 
+            courseId: selectedCourseId, 
+            classId: selectedClassId, 
+            confidenceScore 
+          })
         });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Attendance marking failed:', errorData.error);
+          return;
+        }
         
         const data = await response.json();
         
         if (data.success) {
-          markedStudents.add(studentId);
+          markedStudents.add(studentId.toString());
           addActivityItem(data.attendance);
           updateStats();
         } else if (data.alreadyMarked) {
-          markedStudents.add(studentId);
+          markedStudents.add(studentId.toString());
         }
       } catch (error) {
         console.error('Error marking attendance:', error);
