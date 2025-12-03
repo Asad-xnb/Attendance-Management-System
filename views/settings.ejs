@@ -138,73 +138,25 @@
           <div>
             <label class="block text-sm font-medium text-foreground mb-2">Detection Model</label>
             <select id="detectionModel" class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-              <option value="hog">HOG (Faster, Less Accurate)</option>
-              <option value="cnn" selected>CNN (Slower, More Accurate)</option>
+              <option value="tiny_face_detector" selected>Tiny Face Detector (Faster)</option>
+              <option value="ssd_mobilenetv1">SSD MobileNet v1 (More Accurate)</option>
             </select>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-foreground mb-2">Minimum Face Size</label>
-            <select id="minimumFaceSize" class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-              <option value="80">80px (Close Range)</option>
-              <option value="60" selected>60px (Medium Range)</option>
-              <option value="40">40px (Far Range)</option>
+            <label class="block text-sm font-medium text-foreground mb-2">Input Size</label>
+            <select id="inputSize" class="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+              <option value="224">224px (Faster, Less Accurate)</option>
+              <option value="320">320px (Balanced)</option>
+              <option value="416" selected>416px (Recommended)</option>
+              <option value="512">512px (Slower, More Accurate)</option>
             </select>
+            <p class="text-xs text-muted mt-2">Higher values improve accuracy but reduce speed</p>
           </div>
         </div>
       </div>
 
-      <!-- Notification Settings -->
-      <div class="bg-card border border-border rounded-xl p-6">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-10 h-10 rounded-xl bg-danger/10 flex items-center justify-center">
-            <svg class="w-5 h-5 text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-            </svg>
-          </div>
-          <div>
-            <h3 class="font-semibold text-foreground">Notifications</h3>
-            <p class="text-sm text-muted">Configure alert preferences</p>
-          </div>
-        </div>
-
-        <div class="space-y-4">
-          <label class="flex items-center justify-between p-4 bg-background rounded-lg cursor-pointer">
-            <div>
-              <p class="text-sm font-medium text-foreground">Unknown Person Alert</p>
-              <p class="text-xs text-muted">Notify when unrecognized face detected</p>
-            </div>
-            <input type="checkbox" id="unknownPersonAlert" checked class="w-5 h-5 rounded border-border bg-background text-primary focus:ring-primary">
-          </label>
-
-          <label class="flex items-center justify-between p-4 bg-background rounded-lg cursor-pointer">
-            <div>
-              <p class="text-sm font-medium text-foreground">Late Arrival Alert</p>
-              <p class="text-xs text-muted">Notify when employee arrives late</p>
-            </div>
-            <input type="checkbox" id="lateArrivalAlert" checked class="w-5 h-5 rounded border-border bg-background text-primary focus:ring-primary">
-          </label>
-
-          <label class="flex items-center justify-between p-4 bg-background rounded-lg cursor-pointer">
-            <div>
-              <p class="text-sm font-medium text-foreground">Daily Summary Email</p>
-              <p class="text-xs text-muted">Send attendance report at end of day</p>
-            </div>
-            <input type="checkbox" id="dailySummaryEmail" checked class="w-5 h-5 rounded border-border bg-background text-primary focus:ring-primary">
-          </label>
-
-          <label class="flex items-center justify-between p-4 bg-background rounded-lg cursor-pointer">
-            <div>
-              <p class="text-sm font-medium text-foreground">System Health Alerts</p>
-              <p class="text-xs text-muted">Notify on camera or system issues</p>
-            </div>
-            <input type="checkbox" id="systemHealthAlerts" checked class="w-5 h-5 rounded border-border bg-background text-primary focus:ring-primary">
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <!-- Save Actions -->
+      <!-- Save Actions -->
     <div class="mt-8 bg-card border border-border rounded-xl p-6">
       <div class="flex items-center justify-between">
         <div>
@@ -239,7 +191,6 @@
         // Populate form fields
         document.getElementById('cameraType').value = settings.cameraType || 'webcam';
         document.getElementById('ipCameraUrl').value = settings.ipCameraUrl || '';
-        document.getElementById('resolution').value = settings.resolution || '720p';
         
         document.getElementById('workStartTime').value = settings.workStartTime || '09:00';
         document.getElementById('lateCutoffTime').value = settings.lateCutoffTime || '09:15';
@@ -248,13 +199,8 @@
         
         document.getElementById('matchingThreshold').value = settings.matchingThreshold || 0.75;
         document.getElementById('thresholdValue').textContent = settings.matchingThreshold || 0.75;
-        document.getElementById('detectionModel').value = settings.detectionModel || 'cnn';
-        document.getElementById('minimumFaceSize').value = settings.minimumFaceSize || 60;
-        
-        document.getElementById('unknownPersonAlert').checked = settings.unknownPersonAlert !== false;
-        document.getElementById('lateArrivalAlert').checked = settings.lateArrivalAlert !== false;
-        document.getElementById('dailySummaryEmail').checked = settings.dailySummaryEmail !== false;
-        document.getElementById('systemHealthAlerts').checked = settings.systemHealthAlerts !== false;
+        document.getElementById('detectionModel').value = settings.detectionModel || 'tiny_face_detector';
+        document.getElementById('inputSize').value = settings.inputSize || 416;
         
         toggleIpCameraSection();
       } catch (error) {
@@ -291,10 +237,29 @@
       
       showNotification('Testing camera connection...', 'info');
       
-      // Simulate camera test (in production, this would actually test the connection)
-      setTimeout(() => {
-        showNotification('Camera connection test successful!', 'success');
-      }, 1500);
+      try {
+        const response = await fetch('/api/camera/test', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            cameraType: cameraType,
+            ipCameraUrl: ipCameraUrl
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showNotification(result.message, 'success');
+        } else {
+          showNotification(result.message, 'error');
+        }
+      } catch (error) {
+        console.error('Error testing camera:', error);
+        showNotification('Failed to test camera connection', 'error');
+      }
     }
 
     async function saveSettings() {
@@ -302,7 +267,6 @@
         const settings = {
           cameraType: document.getElementById('cameraType').value,
           ipCameraUrl: document.getElementById('ipCameraUrl').value,
-          resolution: document.getElementById('resolution').value,
           
           workStartTime: document.getElementById('workStartTime').value,
           lateCutoffTime: document.getElementById('lateCutoffTime').value,
@@ -311,12 +275,7 @@
           
           matchingThreshold: parseFloat(document.getElementById('matchingThreshold').value),
           detectionModel: document.getElementById('detectionModel').value,
-          minimumFaceSize: parseInt(document.getElementById('minimumFaceSize').value),
-          
-          unknownPersonAlert: document.getElementById('unknownPersonAlert').checked,
-          lateArrivalAlert: document.getElementById('lateArrivalAlert').checked,
-          dailySummaryEmail: document.getElementById('dailySummaryEmail').checked,
-          systemHealthAlerts: document.getElementById('systemHealthAlerts').checked
+          inputSize: parseInt(document.getElementById('inputSize').value)
         };
         
         const response = await fetch('/api/settings', {

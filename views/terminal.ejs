@@ -112,6 +112,7 @@
     let selectedCourseId = null;
     let faceMatcher = null;
     let isUsingIPCamera = false;
+    let userSettings = null; // Store user settings for face recognition
 
     async function loadTeacherData() {
       try {
@@ -187,7 +188,9 @@
             const descriptors = [new Float32Array(student.faceDescriptor)];
             return new faceapi.LabeledFaceDescriptors(student._id.toString(), descriptors);
           });
-          faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
+          // Use matchingThreshold from settings if available, otherwise default to 0.6
+          const threshold = userSettings?.matchingThreshold || 0.6;
+          faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, threshold);
         }
       } catch (error) {
         console.error('Error loading students:', error);
@@ -256,6 +259,13 @@
       
       if (!isRecognitionActive) {
         try {
+          // Fetch user settings for face recognition
+          const settingsResponse = await fetch('/api/settings');
+          if (settingsResponse.ok) {
+            userSettings = await settingsResponse.json();
+            console.log('User settings loaded:', userSettings);
+          }
+          
           // Fetch camera settings from server
           const settingsRes = await fetch('/api/camera/stream-url');
           const cameraSettings = await settingsRes.json();
@@ -386,7 +396,13 @@
           return;
         }
         
-        const detections = await faceapi.detectAllFaces(sourceElement, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
+        const detections = await faceapi.detectAllFaces(
+          sourceElement, 
+          new faceapi.TinyFaceDetectorOptions({ 
+            inputSize: userSettings?.inputSize || 416,
+            scoreThreshold: 0.5 
+          })
+        ).withFaceLandmarks().withFaceDescriptors();
         const resizedDetections = faceapi.resizeResults(detections, displaySize);
         
         const ctx = overlayCanvas.getContext('2d');
@@ -397,7 +413,9 @@
           const box = detection.detection.box;
           
           const isMarked = markedStudents.has(bestMatch.label.toString());
-          const isMatch = bestMatch.label !== 'unknown' && bestMatch.distance < 0.6;
+          // Use matchingThreshold from settings
+          const threshold = userSettings?.matchingThreshold || 0.6;
+          const isMatch = bestMatch.label !== 'unknown' && bestMatch.distance < threshold;
           
           ctx.strokeStyle = isMarked ? '#10b981' : (isMatch ? '#f59e0b' : '#ef4444');
           ctx.lineWidth = 3;

@@ -1,6 +1,18 @@
 const mongoose = require('mongoose');
 
 const settingsSchema = new mongoose.Schema({
+  // User Reference - Each admin/teacher has their own settings
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    refPath: 'userModel'
+  },
+  userModel: {
+    type: String,
+    required: true,
+    enum: ['Admin', 'Teacher']
+  },
+
   // Camera Settings
   cameraType: {
     type: String,
@@ -10,11 +22,6 @@ const settingsSchema = new mongoose.Schema({
   ipCameraUrl: {
     type: String,
     default: ''
-  },
-  resolution: {
-    type: String,
-    enum: ['1080p', '720p', '480p'],
-    default: '720p'
   },
   
   // Time Settings
@@ -44,38 +51,17 @@ const settingsSchema = new mongoose.Schema({
   },
   detectionModel: {
     type: String,
-    enum: ['hog', 'cnn'],
-    default: 'cnn'
+    enum: ['tiny_face_detector', 'ssd_mobilenetv1'],
+    default: 'tiny_face_detector'
   },
-  minimumFaceSize: {
+  inputSize: {
     type: Number,
-    default: 60
-  },
-  
-  // Notification Settings
-  unknownPersonAlert: {
-    type: Boolean,
-    default: true
-  },
-  lateArrivalAlert: {
-    type: Boolean,
-    default: true
-  },
-  dailySummaryEmail: {
-    type: Boolean,
-    default: true
-  },
-  systemHealthAlerts: {
-    type: Boolean,
-    default: true
-  },
-  
-  // Singleton pattern - only one settings document
-  singleton: {
-    type: Boolean,
-    default: true,
-    unique: true
+    enum: [128, 160, 224, 320, 416, 512, 608],
+    default: 416
   }
 }, { timestamps: true });
+
+// Ensure one settings document per user
+settingsSchema.index({ userId: 1, userModel: 1 }, { unique: true });
 
 module.exports = mongoose.model('Settings', settingsSchema);
