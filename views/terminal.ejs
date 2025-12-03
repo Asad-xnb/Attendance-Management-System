@@ -263,7 +263,6 @@
           const settingsResponse = await fetch('/api/settings');
           if (settingsResponse.ok) {
             userSettings = await settingsResponse.json();
-            console.log('User settings loaded:', userSettings);
           }
           
           // Fetch camera settings from server
