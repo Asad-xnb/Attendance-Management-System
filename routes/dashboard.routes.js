@@ -16,7 +16,7 @@ router.get('/api/dashboard/admin-stats', isAuthenticated, hasRole('admin'), asyn
     
     const presentCount = todayAttendance.filter(a => a.status === 'present').length;
     const lateCount = todayAttendance.filter(a => a.status === 'late').length;
-    const absentCount = totalStudents - todayAttendance.length;
+    const absentCount = totalStudents - presentCount;
 
     // Recent student activity (last 10)
     const recentActivity = await Attendance.find({ sessionDate: today })
@@ -46,7 +46,7 @@ router.get('/api/dashboard/admin-stats', isAuthenticated, hasRole('admin'), asyn
       const classAttendance = await Attendance.countDocuments({ 
         classRef: cls._id, 
         sessionDate: today,
-        status: { $in: ['present', 'late'] }
+        status: 'present'
       });
       
       return {
@@ -67,7 +67,7 @@ router.get('/api/dashboard/admin-stats', isAuthenticated, hasRole('admin'), asyn
       const dayAttendance = await Attendance.find({ sessionDate: date }).lean();
       const present = dayAttendance.filter(a => a.status === 'present').length;
       const late = dayAttendance.filter(a => a.status === 'late').length;
-      const absent = totalStudents - dayAttendance.length;
+      const absent = totalStudents - present;
       
       weeklyData.push({
         date: date.toISOString().split('T')[0],
@@ -119,7 +119,7 @@ router.get('/api/dashboard/teacher-stats', isAuthenticated, hasRole('teacher'), 
     
     const presentCount = todayAttendance.filter(a => a.status === 'present').length;
     const lateCount = todayAttendance.filter(a => a.status === 'late').length;
-    const absentCount = totalStudents - todayAttendance.length;
+    const absentCount = totalStudents - presentCount;
 
     // Recent student activity in teacher's courses
     const recentActivity = await Attendance.find({ 
@@ -153,7 +153,7 @@ router.get('/api/dashboard/teacher-stats', isAuthenticated, hasRole('teacher'), 
         classRef: cls._id,
         courseRef: { $in: courseIds },
         sessionDate: today,
-        status: { $in: ['present', 'late'] }
+        status: 'present'
       });
       
       return {
@@ -178,7 +178,7 @@ router.get('/api/dashboard/teacher-stats', isAuthenticated, hasRole('teacher'), 
       
       const present = dayAttendance.filter(a => a.status === 'present').length;
       const late = dayAttendance.filter(a => a.status === 'late').length;
-      const absent = totalStudents - dayAttendance.length;
+      const absent = totalStudents - present;
       
       weeklyData.push({
         date: date.toISOString().split('T')[0],
@@ -226,16 +226,12 @@ router.get('/api/dashboard/student-stats', isAuthenticated, hasRole('student'), 
     const allAttendance = await Attendance.find({ studentRef: studentId }).lean();
     const presentCount = allAttendance.filter(a => a.status === 'present').length;
     const lateCount = allAttendance.filter(a => a.status === 'late').length;
-    const totalAttended = presentCount + lateCount;
+    const absentCount = allAttendance.filter(a => a.status === 'absent').length + lateCount;
+    const totalSessions = allAttendance.length;
     
-    // Calculate approximate total sessions (you can adjust this logic)
-    // Assuming average 30 sessions per course, or use actual attendance records
-    const estimatedTotalSessions = totalCourses * 30;
-    const absentCount = Math.max(0, estimatedTotalSessions - allAttendance.length);
-    
-    // Calculate attendance rate
-    const attendanceRate = allAttendance.length > 0 
-      ? Math.round((totalAttended / allAttendance.length) * 100) 
+    // Calculate attendance rate (only present counts as attended)
+    const attendanceRate = totalSessions > 0 
+      ? Math.round((presentCount / totalSessions) * 100) 
       : 0;
 
     // Recent personal activity
@@ -266,15 +262,16 @@ router.get('/api/dashboard/student-stats', isAuthenticated, hasRole('student'), 
       
       const present = courseAttendance.filter(a => a.status === 'present').length;
       const late = courseAttendance.filter(a => a.status === 'late').length;
+      const absent = courseAttendance.filter(a => a.status === 'absent').length + late;
       const total = courseAttendance.length;
-      const attendanceRate = total > 0 ? Math.round(((present + late) / total) * 100) : 0;
+      const attendanceRate = total > 0 ? Math.round((present / total) * 100) : 0;
       
       return {
         courseName: course.name,
         courseCode: course.code,
         present,
         late,
-        absent: Math.max(0, 30 - total), // Approximate based on 30 sessions
+        absent,
         total,
         attendanceRate
       };
@@ -294,7 +291,7 @@ router.get('/api/dashboard/student-stats', isAuthenticated, hasRole('student'), 
       
       const present = dayAttendance.filter(a => a.status === 'present').length;
       const late = dayAttendance.filter(a => a.status === 'late').length;
-      const absent = Math.max(0, totalCourses - dayAttendance.length);
+      const absent = dayAttendance.filter(a => a.status === 'absent').length;
       
       weeklyData.push({
         date: date.toISOString().split('T')[0],
@@ -314,7 +311,7 @@ router.get('/api/dashboard/student-stats', isAuthenticated, hasRole('student'), 
       presentCount,
       lateCount,
       absentCount,
-      totalSessions: allAttendance.length,
+      totalSessions,
       totalCourses,
       attendanceRate,
       recentActivity: formattedActivity,

@@ -102,7 +102,7 @@ router.get('/api/courses', isAuthenticated, async (req, res) => {
 // Add course
 router.post('/api/courses', isAuthenticated, hasRole('admin', 'teacher'), async (req, res) => {
   try {
-    const { name, code, classRef, instructorRef } = req.body;
+    const { name, code, classRef, instructorRef, totalSessions } = req.body;
 
     // Check if course code exists
     const existing = await Course.findOne({ code: code.toUpperCase() });
@@ -115,7 +115,7 @@ router.post('/api/courses', isAuthenticated, hasRole('admin', 'teacher'), async 
       code: code.toUpperCase(),
       classRef,
       instructorRef,
-      totalSessions: 0
+      totalSessions: totalSessions || 30
     });
 
     // Add course to class
@@ -128,6 +128,39 @@ router.post('/api/courses', isAuthenticated, hasRole('admin', 'teacher'), async 
       $addToSet: { classes: classRef }
     });
 
+    res.json({ success: true, course });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update course (for teachers to edit totalSessions)
+router.put('/api/courses/:id', isAuthenticated, hasRole('admin', 'teacher'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, code, totalSessions } = req.body;
+    
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (code) updateData.code = code.toUpperCase();
+    if (totalSessions !== undefined) updateData.totalSessions = totalSessions;
+    
+    // If teacher role, verify they own this course
+    if (req.session.role === 'teacher') {
+      const course = await Course.findById(id);
+      if (!course || course.instructorRef.toString() !== req.session.userId) {
+        return res.status(403).json({ error: 'Not authorized to update this course' });
+      }
+    }
+    
+    const course = await Course.findByIdAndUpdate(id, updateData, { new: true })
+      .populate('classRef', 'name semester section')
+      .populate('instructorRef', 'fullName');
+    
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+    
     res.json({ success: true, course });
   } catch (error) {
     res.status(500).json({ error: error.message });

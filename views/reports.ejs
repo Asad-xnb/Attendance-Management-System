@@ -33,7 +33,7 @@
     <div class="bg-card border border-border rounded-xl p-6 mb-6">
       <h3 class="font-semibold text-foreground mb-4">Filter Records</h3>
       <% if (user.role === 'admin' || user.role === 'teacher') { %>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div>
           <label class="block text-sm font-medium text-muted mb-2">Date From</label>
           <input type="date" id="dateFrom" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
@@ -44,8 +44,14 @@
         </div>
         <div>
           <label class="block text-sm font-medium text-muted mb-2">Class</label>
-          <select id="classFilter" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+          <select id="classFilter" onchange="onClassChange()" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
             <option value="">All Classes</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted mb-2">Course</label>
+          <select id="courseFilter" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+            <option value="">All Courses</option>
           </select>
         </div>
         <div>
@@ -68,7 +74,7 @@
         </div>
       </div>
       <% } else { %>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
           <label class="block text-sm font-medium text-muted mb-2">Date From</label>
           <input type="date" id="dateFrom" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
@@ -76,6 +82,12 @@
         <div>
           <label class="block text-sm font-medium text-muted mb-2">Date To</label>
           <input type="date" id="dateTo" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted mb-2">Course</label>
+          <select id="courseFilter" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+            <option value="">All Courses</option>
+          </select>
         </div>
         <div>
           <label class="block text-sm font-medium text-muted mb-2">Status</label>
@@ -201,6 +213,38 @@
       }
     }
 
+    // Load courses for filter dropdown
+    async function loadCourses(classId = '') {
+      if (userRole === 'admin' || userRole === 'teacher' || userRole === 'student') {
+        try {
+          const params = new URLSearchParams();
+          if (classId) params.append('classId', classId);
+          
+          const response = await fetch(`/reports/api/reports/courses?${params}`);
+          const courses = await response.json();
+          const courseFilter = document.getElementById('courseFilter');
+          
+          // Clear existing options except "All Courses"
+          courseFilter.innerHTML = '<option value="">All Courses</option>';
+          
+          courses.forEach(course => {
+            const option = document.createElement('option');
+            option.value = course._id;
+            option.textContent = `${course.code} - ${course.name}`;
+            courseFilter.appendChild(option);
+          });
+        } catch (error) {
+          console.error('Error loading courses:', error);
+        }
+      }
+    }
+
+    // Handle class change event
+    function onClassChange() {
+      const classId = document.getElementById('classFilter').value;
+      loadCourses(classId);
+    }
+
     // Load reports data based on role
     async function loadReportsData() {
       try {
@@ -244,10 +288,15 @@
       
       if (userRole === 'admin' || userRole === 'teacher') {
         const classId = document.getElementById('classFilter').value;
+        const courseId = document.getElementById('courseFilter').value;
         const search = document.getElementById('searchInput').value;
         
         if (classId) filters.classId = classId;
+        if (courseId) filters.courseId = courseId;
         if (search) filters.search = search;
+      } else if (userRole === 'student') {
+        const courseId = document.getElementById('courseFilter').value;
+        if (courseId) filters.courseId = courseId;
       }
       
       return filters;
@@ -395,6 +444,7 @@
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', () => {
       loadClasses();
+      loadCourses();
       loadReportsData();
     });
   </script>

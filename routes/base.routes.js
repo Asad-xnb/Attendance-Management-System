@@ -17,11 +17,11 @@ router.get("/reports", isAuthenticated, hasRole('admin', 'teacher', 'student'), 
     res.render("reports");
 });
 
-router.get("/settings", (req, res) => {
+router.get("/settings", isAuthenticated, hasRole('admin', 'teacher'), (req, res) => {
     res.render("settings");
 });
 
-router.get("/terminal", isAuthenticated, (req, res) => {
+router.get("/terminal", isAuthenticated, hasRole('admin', 'teacher'), (req, res) => {
     res.render("terminal");
 });
 
