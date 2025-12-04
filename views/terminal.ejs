@@ -444,6 +444,13 @@
           return;
         }
         
+        if (!faceMatcher) {
+          console.warn('Face matcher not ready yet; waiting for class selection');
+          updateStatus('standby', 'Select a class to start recognition');
+          setTimeout(detectFaces, 500);
+          return;
+        }
+
         const detections = await faceapi.detectAllFaces(
           sourceElement, 
           new faceapi.TinyFaceDetectorOptions({ 
