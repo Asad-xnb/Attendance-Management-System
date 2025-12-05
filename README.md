@@ -107,10 +107,17 @@ An intelligent attendance management system using facial recognition technology.
 6. **Access the application**
    Open your browser and navigate to `http://localhost:3000`
 
+7. **Create an admin account**
+   - In the terminal Type:
+     ```bash
+     node My_scripts/createSuperAdmin.js
+     ```
+   - Go to `/login`
+   - Login with the created admin account
+
 ## Project Structure
 
 ```
-AMS-AI/
 ├── models/              # Mongoose schemas
 │   ├── Admin.js
 │   ├── Student.js
