@@ -5,21 +5,27 @@ const { isAuthenticated, hasRole } = require('../middleware/auth');
 // Get Admin Dashboard Stats
 router.get('/api/dashboard/admin-stats', isAuthenticated, hasRole('admin'), async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Create date boundaries for today (local time)
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
     // Total enrolled students
     const totalStudents = await Student.countDocuments({ isEnrolled: true });
 
-    // Today's attendance stats
-    const todayAttendance = await Attendance.find({ sessionDate: today }).lean();
+    // Today's attendance stats (query by timestamp)
+    const todayAttendance = await Attendance.find({ 
+      timestamp: { $gte: todayStart, $lte: todayEnd }
+    }).lean();
     
     const presentCount = todayAttendance.filter(a => a.status === 'present').length;
     const lateCount = todayAttendance.filter(a => a.status === 'late').length;
-    const absentCount = totalStudents - presentCount;
+    const absentCount = totalStudents - presentCount - lateCount;
 
     // Recent student activity (last 10)
-    const recentActivity = await Attendance.find({ sessionDate: today })
+    const recentActivity = await Attendance.find({ 
+      timestamp: { $gte: todayStart, $lte: todayEnd }
+    })
       .populate('studentRef', 'fullName rollNo')
       .populate('courseRef', 'name code')
       .populate('classRef', 'name section')
@@ -45,8 +51,8 @@ router.get('/api/dashboard/admin-stats', isAuthenticated, hasRole('admin'), asyn
       const classStudents = await Student.countDocuments({ classRef: cls._id, isEnrolled: true });
       const classAttendance = await Attendance.countDocuments({ 
         classRef: cls._id, 
-        sessionDate: today,
-        status: 'present'
+        timestamp: { $gte: todayStart, $lte: todayEnd },
+        status: { $in: ['present', 'late'] }
       });
       
       return {
@@ -60,21 +66,23 @@ router.get('/api/dashboard/admin-stats', isAuthenticated, hasRole('admin'), asyn
     // Weekly attendance (last 7 days)
     const weeklyData = [];
     for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      date.setHours(0, 0, 0, 0);
+      const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 0, 0, 0, 0);
+      const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 23, 59, 59, 999);
       
-      const dayAttendance = await Attendance.find({ sessionDate: date }).lean();
+      const dayAttendance = await Attendance.find({ 
+        timestamp: { $gte: dayStart, $lte: dayEnd }
+      }).lean();
+      
       const present = dayAttendance.filter(a => a.status === 'present').length;
       const late = dayAttendance.filter(a => a.status === 'late').length;
-      const absent = totalStudents - present;
+      const absent = totalStudents - present - late;
       
       weeklyData.push({
-        date: date.toISOString().split('T')[0],
-        dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        date: dayStart.toISOString().split('T')[0],
+        dayName: dayStart.toLocaleDateString('en-US', { weekday: 'short' }),
         present,
         late,
-        absent
+        absent: absent > 0 ? absent : 0
       });
     }
 
@@ -82,7 +90,7 @@ router.get('/api/dashboard/admin-stats', isAuthenticated, hasRole('admin'), asyn
       totalStudents,
       presentCount,
       lateCount,
-      absentCount,
+      absentCount: absentCount > 0 ? absentCount : 0,
       recentActivity: formattedActivity,
       classBreakdown,
       weeklyData
@@ -97,8 +105,11 @@ router.get('/api/dashboard/admin-stats', isAuthenticated, hasRole('admin'), asyn
 router.get('/api/dashboard/teacher-stats', isAuthenticated, hasRole('teacher'), async (req, res) => {
   try {
     const teacherId = req.session.userId;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    
+    // Create date boundaries for today (local time)
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
     // Get teacher's courses
     const teacherCourses = await Course.find({ instructorRef: teacherId }).select('_id classRef').lean();
@@ -114,17 +125,17 @@ router.get('/api/dashboard/teacher-stats', isAuthenticated, hasRole('teacher'), 
     // Today's attendance stats for teacher's courses
     const todayAttendance = await Attendance.find({ 
       courseRef: { $in: courseIds },
-      sessionDate: today 
+      timestamp: { $gte: todayStart, $lte: todayEnd }
     }).lean();
     
     const presentCount = todayAttendance.filter(a => a.status === 'present').length;
     const lateCount = todayAttendance.filter(a => a.status === 'late').length;
-    const absentCount = totalStudents - presentCount;
+    const absentCount = totalStudents - presentCount - lateCount;
 
     // Recent student activity in teacher's courses
     const recentActivity = await Attendance.find({ 
       courseRef: { $in: courseIds },
-      sessionDate: today 
+      timestamp: { $gte: todayStart, $lte: todayEnd }
     })
       .populate('studentRef', 'fullName rollNo')
       .populate('courseRef', 'name code')
@@ -152,8 +163,8 @@ router.get('/api/dashboard/teacher-stats', isAuthenticated, hasRole('teacher'), 
       const classAttendance = await Attendance.countDocuments({ 
         classRef: cls._id,
         courseRef: { $in: courseIds },
-        sessionDate: today,
-        status: 'present'
+        timestamp: { $gte: todayStart, $lte: todayEnd },
+        status: { $in: ['present', 'late'] }
       });
       
       return {
@@ -167,25 +178,24 @@ router.get('/api/dashboard/teacher-stats', isAuthenticated, hasRole('teacher'), 
     // Weekly attendance for teacher's courses
     const weeklyData = [];
     for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      date.setHours(0, 0, 0, 0);
+      const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 0, 0, 0, 0);
+      const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 23, 59, 59, 999);
       
       const dayAttendance = await Attendance.find({ 
         courseRef: { $in: courseIds },
-        sessionDate: date 
+        timestamp: { $gte: dayStart, $lte: dayEnd }
       }).lean();
       
       const present = dayAttendance.filter(a => a.status === 'present').length;
       const late = dayAttendance.filter(a => a.status === 'late').length;
-      const absent = totalStudents - present;
+      const absent = totalStudents - present - late;
       
       weeklyData.push({
-        date: date.toISOString().split('T')[0],
-        dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        date: dayStart.toISOString().split('T')[0],
+        dayName: dayStart.toLocaleDateString('en-US', { weekday: 'short' }),
         present,
         late,
-        absent
+        absent: absent > 0 ? absent : 0
       });
     }
 
@@ -193,7 +203,7 @@ router.get('/api/dashboard/teacher-stats', isAuthenticated, hasRole('teacher'), 
       totalStudents,
       presentCount,
       lateCount,
-      absentCount,
+      absentCount: absentCount > 0 ? absentCount : 0,
       recentActivity: formattedActivity,
       classBreakdown,
       weeklyData
@@ -208,8 +218,9 @@ router.get('/api/dashboard/teacher-stats', isAuthenticated, hasRole('teacher'), 
 router.get('/api/dashboard/student-stats', isAuthenticated, hasRole('student'), async (req, res) => {
   try {
     const studentId = req.session.userId;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    
+    // Create date boundaries for today and weekly calculations (local time)
+    const now = new Date();
 
     // Get student info
     const student = await Student.findById(studentId).populate('classRef').lean();
@@ -280,13 +291,12 @@ router.get('/api/dashboard/student-stats', isAuthenticated, hasRole('student'), 
     // Weekly personal attendance (last 7 days)
     const weeklyData = [];
     for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      date.setHours(0, 0, 0, 0);
+      const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 0, 0, 0, 0);
+      const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 23, 59, 59, 999);
       
       const dayAttendance = await Attendance.find({ 
         studentRef: studentId,
-        sessionDate: date 
+        timestamp: { $gte: dayStart, $lte: dayEnd }
       }).lean();
       
       const present = dayAttendance.filter(a => a.status === 'present').length;
@@ -294,8 +304,8 @@ router.get('/api/dashboard/student-stats', isAuthenticated, hasRole('student'), 
       const absent = dayAttendance.filter(a => a.status === 'absent').length;
       
       weeklyData.push({
-        date: date.toISOString().split('T')[0],
-        dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        date: dayStart.toISOString().split('T')[0],
+        dayName: dayStart.toLocaleDateString('en-US', { weekday: 'short' }),
         present,
         late,
         absent

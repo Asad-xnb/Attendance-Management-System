@@ -126,8 +126,23 @@
           </div>
         </div>
         <!-- Dynamic Bar Chart -->
-        <div id="weeklyChart" class="flex items-end justify-between h-48 gap-4">
-          <div class="flex-1 text-center text-muted">Loading...</div>
+        <div id="weeklyChart" class="flex items-stretch justify-between h-52 gap-2">
+          <div class="flex-1 text-center text-muted flex items-center justify-center">Loading...</div>
+        </div>
+        <!-- Chart Legend -->
+        <div class="flex items-center justify-center gap-6 mt-4 text-xs">
+          <div class="flex items-center gap-1.5">
+            <div class="w-3 h-3 bg-primary rounded"></div>
+            <span class="text-muted">Present</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-3 h-3 bg-yellow-500 rounded"></div>
+            <span class="text-muted">Late</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-3 h-3 bg-red-500 rounded"></div>
+            <span class="text-muted">Absent</span>
+          </div>
         </div>
       </div>
 
@@ -143,11 +158,14 @@
           </h3>
           <span class="w-2 h-2 bg-primary rounded-full pulse-dot"></span>
         </div>
-        <div class="space-y-4" id="activityFeed">
+        <div class="space-y-3" id="activityFeed">
           <div class="text-center text-muted py-8">
             <p class="text-sm">Loading activity...</p>
           </div>
         </div>
+        <button id="showMoreBtn" onclick="toggleShowMore()" class="hidden w-full mt-4 py-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
+          Show More
+        </button>
       </div>
     </div>
 
@@ -258,14 +276,38 @@
       }
     }
 
+    let allActivities = [];
+    let showingAll = false;
+
     function updateActivity(activities) {
       const feed = document.getElementById('activityFeed');
+      const showMoreBtn = document.getElementById('showMoreBtn');
+      allActivities = activities;
+      showingAll = false;
       
       if (activities.length === 0) {
         feed.innerHTML = '<div class="text-center text-muted py-8"><p class="text-sm">No recent activity</p></div>';
+        showMoreBtn.classList.add('hidden');
         return;
       }
 
+      // Show only first 5 items initially
+      const displayActivities = activities.slice(0, 5);
+      
+      // Show/hide the Show More button
+      if (activities.length > 5) {
+        showMoreBtn.classList.remove('hidden');
+        showMoreBtn.textContent = `Show More (${activities.length - 5} more)`;
+      } else {
+        showMoreBtn.classList.add('hidden');
+      }
+
+      renderActivities(displayActivities);
+    }
+
+    function renderActivities(activities) {
+      const feed = document.getElementById('activityFeed');
+      
       feed.innerHTML = activities.map(activity => {
         const initials = userRole === 'student' 
           ? (activity.courseName ? activity.courseName.substring(0, 2).toUpperCase() : 'NA')
@@ -305,6 +347,19 @@
       }).join('');
     }
 
+    function toggleShowMore() {
+      const showMoreBtn = document.getElementById('showMoreBtn');
+      showingAll = !showingAll;
+      
+      if (showingAll) {
+        renderActivities(allActivities);
+        showMoreBtn.textContent = 'Show Less';
+      } else {
+        renderActivities(allActivities.slice(0, 5));
+        showMoreBtn.textContent = `Show More (${allActivities.length - 5} more)`;
+      }
+    }
+
     function updateWeeklyChart(weeklyData) {
       const chart = document.getElementById('weeklyChart');
       
@@ -313,16 +368,31 @@
         return;
       }
 
-      const maxValue = Math.max(...weeklyData.map(d => (d.present || 0) + (d.late || 0) + (d.absent || 0)));
+      const maxValue = Math.max(...weeklyData.map(d => (d.present || 0) + (d.late || 0) + (d.absent || 0)), 1);
       
       chart.innerHTML = weeklyData.map(day => {
-        const total = (day.present || 0) + (day.late || 0) + (day.absent || 0);
-        const height = maxValue > 0 ? (total / maxValue * 100) : 10;
+        const present = day.present || 0;
+        const late = day.late || 0;
+        const absent = day.absent || 0;
+        const total = present + late + absent;
+        
+        // Calculate heights as percentages of max (minimum 4px for visibility)
+        const presentHeight = maxValue > 0 ? Math.max((present / maxValue * 100), present > 0 ? 5 : 0) : 0;
+        const lateHeight = maxValue > 0 ? Math.max((late / maxValue * 100), late > 0 ? 5 : 0) : 0;
+        const absentHeight = maxValue > 0 ? Math.max((absent / maxValue * 100), absent > 0 ? 5 : 0) : 0;
         
         return `
           <div class="flex-1 flex flex-col items-center gap-2">
-            <div class="w-full bg-primary rounded-t-lg" style="height: ${height}%"></div>
-            <span class="text-xs text-muted">${day.dayName}</span>
+            <div class="w-full h-full flex flex-col justify-end items-center gap-0.5" style="min-height: 160px;">
+              ${absent > 0 ? `<div class="w-3/4 bg-red-500 rounded-t" style="height: ${absentHeight}%;" title="Absent: ${absent}"></div>` : ''}
+              ${late > 0 ? `<div class="w-3/4 bg-yellow-500 ${absent === 0 ? 'rounded-t' : ''}" style="height: ${lateHeight}%;" title="Late: ${late}"></div>` : ''}
+              ${present > 0 ? `<div class="w-3/4 bg-primary ${absent === 0 && late === 0 ? 'rounded-t' : ''} rounded-b" style="height: ${presentHeight}%;" title="Present: ${present}"></div>` : ''}
+              ${total === 0 ? `<div class="w-3/4 bg-gray-300 rounded" style="height: 4px;"></div>` : ''}
+            </div>
+            <div class="text-center">
+              <span class="text-xs text-muted">${day.dayName}</span>
+              <p class="text-xs text-muted">${total}</p>
+            </div>
           </div>
         `;
       }).join('');
