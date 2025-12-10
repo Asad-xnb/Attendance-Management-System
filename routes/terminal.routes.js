@@ -356,7 +356,7 @@ router.post('/api/end-session', isAuthenticated, hasRole('admin', 'teacher'), as
         classRef: classId,
         status: 'absent',
         confidenceScore: 0,
-        markedBy: 'session_end',
+        markedBy: 'system',
         sessionDate: sessionDate,
         timestamp: new Date()
       }));
@@ -376,6 +376,29 @@ router.post('/api/end-session', isAuthenticated, hasRole('admin', 'teacher'), as
   } catch (error) {
     console.error('Error ending session:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Cancel/Delete attendance record
+router.delete('/api/cancel-attendance/:attendanceId', isAuthenticated, hasRole('admin', 'teacher'), async (req, res) => {
+  try {
+    const { attendanceId } = req.params;
+
+    // Find and delete the attendance record
+    const deletedAttendance = await Attendance.findByIdAndDelete(attendanceId);
+
+    if (!deletedAttendance) {
+      return res.status(404).json({ success: false, message: 'Attendance record not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Attendance cancelled successfully',
+      deletedAttendance
+    });
+  } catch (error) {
+    console.error('Error canceling attendance:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

@@ -199,6 +199,11 @@
     let isUsingIPCamera = false;
     let isUsingPreRecordedVideo = false;
     let userSettings = null; // Store user settings for face recognition
+    
+    // Consecutive detection tracking
+    let consecutiveDetections = new Map(); // studentId -> { count, lastSeen, descriptor }
+    const REQUIRED_DETECTIONS = 3; // Number of consecutive detections required
+    const DETECTION_TIMEOUT = 3000; // 3 seconds - reset if not seen within this time
 
     async function loadTeacherData() {
       try {
@@ -304,6 +309,9 @@
       document.getElementById('courseCode').textContent = `Code: ${courseCode}`;
       startBtn.disabled = false;
       endSessionBtn.disabled = false;
+      
+      // Clear consecutive detections when changing course
+      consecutiveDetections.clear();
       
       loadTodayAttendance();
     });
@@ -535,6 +543,9 @@
     function stopRecognition() {
       isRecognitionActive = false;
       
+      // Clear consecutive detections
+      consecutiveDetections.clear();
+      
       // Stop webcam stream
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
@@ -668,6 +679,14 @@
         const ctx = overlayCanvas.getContext('2d');
         ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
         
+        // Clean up old detections (not seen recently)
+        const now = Date.now();
+        for (const [studentId, data] of consecutiveDetections.entries()) {
+          if (now - data.lastSeen > DETECTION_TIMEOUT) {
+            consecutiveDetections.delete(studentId);
+          }
+        }
+        
         resizedDetections.forEach(detection => {
           const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
           const box = detection.detection.box;
@@ -677,23 +696,68 @@
           const threshold = userSettings?.matchingThreshold || 0.6;
           const isMatch = bestMatch.label !== 'unknown' && bestMatch.distance < threshold;
           
-          ctx.strokeStyle = isMarked ? '#10b981' : (isMatch ? '#f59e0b' : '#ef4444');
+          // Handle consecutive detection tracking (skip for pre-recorded video)
+          let detectionCount = 0;
+          if (isMatch && !isMarked) {
+            const studentId = bestMatch.label.toString();
+            
+            // For pre-recorded video, mark immediately on first detection
+            if (isUsingPreRecordedVideo) {
+              markAttendance(studentId, 1 - bestMatch.distance, Array.from(detection.descriptor));
+              detectionCount = REQUIRED_DETECTIONS; // Show as complete
+            } else {
+              // For live camera/IP camera, require consecutive detections
+              if (!consecutiveDetections.has(studentId)) {
+                consecutiveDetections.set(studentId, {
+                  count: 1,
+                  lastSeen: now,
+                  descriptor: Array.from(detection.descriptor)
+                });
+                detectionCount = 1;
+              } else {
+                const data = consecutiveDetections.get(studentId);
+                data.count++;
+                data.lastSeen = now;
+                data.descriptor = Array.from(detection.descriptor);
+                detectionCount = data.count;
+                
+                // Mark attendance when required detections reached
+                if (data.count >= REQUIRED_DETECTIONS) {
+                  markAttendance(studentId, 1 - bestMatch.distance, data.descriptor);
+                  consecutiveDetections.delete(studentId); // Clear after marking
+                }
+              }
+            }
+          }
+          
+          // Draw detection box with color based on status
+          let boxColor, labelText;
+          if (isMarked) {
+            boxColor = '#10b981'; // Green - already marked
+            labelText = '✓ MARKED';
+          } else if (isMatch) {
+            if (detectionCount > 0 && detectionCount < REQUIRED_DETECTIONS) {
+              boxColor = '#f59e0b'; // Yellow - detecting
+              labelText = `${detectionCount}/${REQUIRED_DETECTIONS} (${(1 - bestMatch.distance).toFixed(2)})`;
+            } else {
+              boxColor = '#3b82f6'; // Blue - matched
+              labelText = `${(1 - bestMatch.distance).toFixed(2)}`;
+            }
+          } else {
+            boxColor = '#ef4444'; // Red - unknown
+            labelText = 'UNKNOWN';
+          }
+          
+          ctx.strokeStyle = boxColor;
           ctx.lineWidth = 3;
           ctx.strokeRect(box.x, box.y, box.width, box.height);
           
-          const label = isMatch ? (isMarked ? '✓ MARKED' : `${(1 - bestMatch.distance).toFixed(2)}`) : 'UNKNOWN';
-          
-          ctx.fillStyle = isMarked ? '#10b981' : (isMatch ? '#f59e0b' : '#ef4444');
+          ctx.fillStyle = boxColor;
           ctx.font = '16px Inter';
-          const textWidth = ctx.measureText(label).width;
+          const textWidth = ctx.measureText(labelText).width;
           ctx.fillRect(box.x, box.y - 25, textWidth + 10, 25);
           ctx.fillStyle = '#ffffff';
-          ctx.fillText(label, box.x + 5, box.y - 7);
-          
-          if (isMatch && !isMarked) {
-            // Pass the face descriptor for incremental learning
-            markAttendance(bestMatch.label, 1 - bestMatch.distance, Array.from(detection.descriptor));
-          }
+          ctx.fillText(labelText, box.x + 5, box.y - 7);
         });
         
         setTimeout(detectFaces, 200);
@@ -762,15 +826,24 @@
       
       const item = document.createElement('div');
       item.className = 'flex items-center gap-3 p-3 bg-background rounded-lg border border-' + statusColor + '/20';
+      item.setAttribute('data-attendance-id', record._id);
+      item.setAttribute('data-student-id', record.studentRef?._id || record.studentRef);
       item.innerHTML = `
         <div class="w-10 h-10 rounded-full bg-${statusColor}/20 flex items-center justify-center text-${statusColor} font-semibold text-sm">${initials}</div>
         <div class="flex-1 min-w-0">
           <p class="font-medium text-foreground text-sm truncate">${record.student.fullName}</p>
           <p class="text-xs text-muted">${record.student.rollNo}</p>
         </div>
-        <div class="text-right">
-          <span class="text-xs font-medium text-${statusColor}">${statusLabel}</span>
-          <p class="text-xs text-muted">${time}</p>
+        <div class="flex items-center gap-2">
+          <div class="text-right">
+            <span class="text-xs font-medium text-${statusColor}">${statusLabel}</span>
+            <p class="text-xs text-muted">${time}</p>
+          </div>
+          <button onclick="cancelAttendance('${record._id}', '${record.studentRef?._id || record.studentRef}')" class="p-1.5 rounded-lg bg-danger/10 text-danger hover:bg-danger hover:text-background transition-all" title="Cancel attendance">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
       `;
       
@@ -791,6 +864,49 @@
       
       dot.className = 'w-2 h-2 rounded-full ' + (status === 'active' ? 'bg-primary animate-pulse' : 'bg-muted');
       statusText.textContent = text;
+    }
+
+    async function cancelAttendance(attendanceId, studentId) {
+      if (!confirm('Are you sure you want to cancel this attendance?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/terminal/api/cancel-attendance/${attendanceId}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to cancel attendance');
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Remove from markedStudents set
+          markedStudents.delete(studentId.toString());
+          
+          // Remove the item from UI
+          const item = document.querySelector(`[data-attendance-id="${attendanceId}"]`);
+          if (item) {
+            item.remove();
+          }
+          
+          // Check if feed is empty
+          const activityFeed = document.getElementById('activityFeed');
+          if (activityFeed.children.length === 0) {
+            activityFeed.innerHTML = '<div class="text-center text-muted py-8"><p class="text-sm">No attendance marked yet</p></div>';
+          }
+          
+          // Update stats
+          updateStats();
+        } else {
+          alert('Failed to cancel attendance: ' + (data.message || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error canceling attendance:', error);
+        alert('Failed to cancel attendance. Please try again.');
+      }
     }
 
     // Video playback control functions
