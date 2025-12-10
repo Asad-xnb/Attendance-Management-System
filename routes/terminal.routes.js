@@ -213,4 +213,170 @@ router.get('/api/today-attendance/:courseId', isAuthenticated, hasRole('admin', 
   }
 });
 
+// Get unmarked students for a class/course session
+router.get('/api/unmarked-students/:classId/:courseId', isAuthenticated, hasRole('admin', 'teacher'), async (req, res) => {
+  try {
+    const { classId, courseId } = req.params;
+    
+    if (!classId || !courseId) {
+      return res.status(400).json({ error: 'Class ID and Course ID are required' });
+    }
+    
+    const sessionDate = new Date();
+    sessionDate.setHours(0, 0, 0, 0);
+    
+    // Get all enrolled students in this class
+    const allStudents = await Student.find({
+      classRef: classId,
+      isEnrolled: true
+    }).select('_id fullName rollNo').lean();
+    
+    // Get students who have been marked today for this course
+    const markedAttendance = await Attendance.find({
+      courseRef: courseId,
+      classRef: classId,
+      sessionDate: sessionDate
+    }).select('studentRef').lean();
+    
+    const markedStudentIds = new Set(markedAttendance.map(a => a.studentRef.toString()));
+    
+    // Filter out marked students to get unmarked ones
+    const unmarkedStudents = allStudents.filter(student => 
+      !markedStudentIds.has(student._id.toString())
+    );
+    
+    res.json({ 
+      unmarkedStudents,
+      totalStudents: allStudents.length,
+      markedCount: markedStudentIds.size
+    });
+  } catch (error) {
+    console.error('Error fetching unmarked students:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Manually mark attendance (for missed students)
+router.post('/api/manual-mark-attendance', isAuthenticated, hasRole('admin', 'teacher'), async (req, res) => {
+  try {
+    const { studentId, courseId, classId, status } = req.body;
+    
+    if (!studentId || !courseId || !classId || !status) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    if (!['present', 'late', 'absent'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status. Must be present, late, or absent' });
+    }
+    
+    const sessionDate = new Date();
+    sessionDate.setHours(0, 0, 0, 0);
+    
+    // Check if attendance already marked
+    const existingAttendance = await Attendance.findOne({
+      studentRef: studentId,
+      courseRef: courseId,
+      sessionDate: sessionDate
+    }).lean();
+    
+    if (existingAttendance) {
+      return res.status(400).json({ 
+        error: 'Attendance already marked for this student',
+        alreadyMarked: true
+      });
+    }
+    
+    // Create attendance record
+    const attendance = await Attendance.create({
+      studentRef: studentId,
+      courseRef: courseId,
+      classRef: classId,
+      status: status,
+      confidenceScore: status === 'absent' ? 0 : 1,
+      markedBy: 'manual',
+      sessionDate: sessionDate,
+      timestamp: new Date()
+    });
+    
+    // Get student info for response
+    const student = await Student.findById(studentId).select('fullName rollNo').lean();
+    
+    res.json({
+      success: true,
+      attendance: {
+        ...attendance.toObject(),
+        student: { fullName: student.fullName, rollNo: student.rollNo }
+      }
+    });
+  } catch (error) {
+    console.error('Error manually marking attendance:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Bulk mark absent for all unmarked students (End Session)
+router.post('/api/end-session', isAuthenticated, hasRole('admin', 'teacher'), async (req, res) => {
+  try {
+    const { classId, courseId, markAbsent = true } = req.body;
+    
+    if (!classId || !courseId) {
+      return res.status(400).json({ error: 'Class ID and Course ID are required' });
+    }
+    
+    const sessionDate = new Date();
+    sessionDate.setHours(0, 0, 0, 0);
+    
+    // Get all enrolled students
+    const allStudents = await Student.find({
+      classRef: classId,
+      isEnrolled: true
+    }).select('_id fullName rollNo').lean();
+    
+    // Get already marked students
+    const markedAttendance = await Attendance.find({
+      courseRef: courseId,
+      classRef: classId,
+      sessionDate: sessionDate
+    }).select('studentRef').lean();
+    
+    const markedStudentIds = new Set(markedAttendance.map(a => a.studentRef.toString()));
+    
+    // Get unmarked students
+    const unmarkedStudents = allStudents.filter(student => 
+      !markedStudentIds.has(student._id.toString())
+    );
+    
+    let markedAbsentCount = 0;
+    
+    if (markAbsent && unmarkedStudents.length > 0) {
+      // Bulk create absent records for unmarked students
+      const absentRecords = unmarkedStudents.map(student => ({
+        studentRef: student._id,
+        courseRef: courseId,
+        classRef: classId,
+        status: 'absent',
+        confidenceScore: 0,
+        markedBy: 'session_end',
+        sessionDate: sessionDate,
+        timestamp: new Date()
+      }));
+      
+      await Attendance.insertMany(absentRecords);
+      markedAbsentCount = unmarkedStudents.length;
+    }
+    
+    res.json({
+      success: true,
+      message: `Session ended. ${markedAbsentCount} students marked as absent.`,
+      totalStudents: allStudents.length,
+      presentCount: markedAttendance.filter(a => a.status !== 'absent').length,
+      absentCount: markedAbsentCount,
+      unmarkedStudents: unmarkedStudents
+    });
+  } catch (error) {
+    console.error('Error ending session:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

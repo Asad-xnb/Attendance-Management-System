@@ -122,9 +122,14 @@
       </div>
 
       <div class="bg-card border border-border rounded-xl flex flex-col max-h-[600px]">
-        <div class="p-4 border-b border-border">
-          <h3 class="font-semibold text-foreground">Today's Attendance</h3>
-          <p class="text-xs text-muted mt-1">Live feed</p>
+        <div class="p-4 border-b border-border flex items-center justify-between">
+          <div>
+            <h3 class="font-semibold text-foreground">Today's Attendance</h3>
+            <p class="text-xs text-muted mt-1">Live feed</p>
+          </div>
+          <button id="endSessionBtn" onclick="openEndSessionModal()" disabled class="px-3 py-1.5 bg-danger text-background text-sm font-medium rounded-lg hover:bg-danger/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            End Session
+          </button>
         </div>
         <div id="activityFeed" class="flex-1 overflow-y-auto p-4 space-y-3">
           <div class="text-center text-muted py-8">
@@ -133,12 +138,60 @@
         </div>
       </div>
     </div>
+
+    <!-- Not Yet Detected Panel -->
+    <div class="mt-6 bg-card border border-border rounded-xl">
+      <div class="p-4 border-b border-border flex items-center justify-between">
+        <div>
+          <h3 class="font-semibold text-foreground">Not Yet Detected</h3>
+          <p class="text-xs text-muted mt-1">Students who haven't been recognized</p>
+        </div>
+        <span id="notDetectedCount" class="px-2 py-1 bg-warning/20 text-warning text-sm font-medium rounded">0</span>
+      </div>
+      <div id="notDetectedList" class="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 max-h-[200px] overflow-y-auto">
+        <p class="text-sm text-muted col-span-full text-center py-4">Select a class to see students</p>
+      </div>
+    </div>
   </main>
+
+  <!-- End Session Modal -->
+  <div id="endSessionModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-card border border-border rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+      <div class="p-6 border-b border-border">
+        <h2 class="text-xl font-bold text-foreground">End Session</h2>
+        <p class="text-sm text-muted mt-1">Review unmarked students before ending the session</p>
+      </div>
+      
+      <div class="p-6 flex-1 overflow-y-auto">
+        <div id="unmarkedStudentsList" class="space-y-2">
+          <p class="text-muted text-center py-4">Loading...</p>
+        </div>
+      </div>
+      
+      <div class="p-6 border-t border-border bg-background rounded-b-xl">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="markAllAbsent" checked class="w-4 h-4 accent-primary">
+            <label for="markAllAbsent" class="text-sm text-foreground">Mark all remaining as absent</label>
+          </div>
+          <div class="flex gap-3">
+            <button onclick="closeEndSessionModal()" class="px-4 py-2 bg-background border border-border text-foreground font-medium rounded-lg hover:bg-card transition-all">
+              Cancel
+            </button>
+            <button onclick="confirmEndSession()" class="px-4 py-2 bg-danger text-background font-medium rounded-lg hover:bg-danger/90 transition-all">
+              End Session
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
     let stream = null;
     let isRecognitionActive = false;
     let studentDescriptors = [];
+    let allClassStudents = []; // All students in class (including those without face descriptors)
     let markedStudents = new Set();
     let selectedClassId = null;
     let selectedCourseId = null;
@@ -209,12 +262,16 @@
       courseSelect.disabled = false;
       
       try {
+        // Fetch students with face descriptors for recognition
         const response = await fetch(`/terminal/api/class-students/${classId}`);
         const data = await response.json();
         studentDescriptors = data.students;
         
-        document.getElementById('classStudentCount').textContent = `${studentDescriptors.length} students enrolled`;
+        document.getElementById('classStudentCount').textContent = `${studentDescriptors.length} students with face data`;
         document.getElementById('totalStudents').textContent = studentDescriptors.length;
+        
+        // Update not detected list with all students initially (no course selected yet)
+        updateNotDetectedList();
         
         if (studentDescriptors.length > 0 && typeof faceapi !== 'undefined') {
           const labeledDescriptors = studentDescriptors.map(student => {
@@ -233,9 +290,11 @@
     document.getElementById('courseSelect').addEventListener('change', (e) => {
       const courseId = e.target.value;
       const startBtn = document.getElementById('startBtn');
+      const endSessionBtn = document.getElementById('endSessionBtn');
       
       if (!courseId) {
         startBtn.disabled = true;
+        endSessionBtn.disabled = true;
         document.getElementById('courseCode').textContent = '';
         return;
       }
@@ -244,6 +303,7 @@
       const courseCode = e.target.selectedOptions[0].dataset.code;
       document.getElementById('courseCode').textContent = `Code: ${courseCode}`;
       startBtn.disabled = false;
+      endSessionBtn.disabled = false;
       
       loadTodayAttendance();
     });
@@ -691,8 +751,13 @@
       }
       
       const initials = record.student.fullName.split(' ').map(n => n[0]).join('');
-      const statusColor = record.status === 'present' ? 'primary' : 'warning';
-      const statusLabel = record.status === 'present' ? 'PRESENT' : 'LATE';
+      const statusColors = {
+        'present': 'primary',
+        'late': 'warning',
+        'absent': 'danger'
+      };
+      const statusColor = statusColors[record.status] || 'muted';
+      const statusLabel = record.status.toUpperCase();
       const time = new Date(record.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
       
       const item = document.createElement('div');
@@ -715,6 +780,9 @@
     function updateStats() {
       document.getElementById('markedCount').textContent = markedStudents.size;
       document.getElementById('pendingCount').textContent = studentDescriptors.length - markedStudents.size;
+      
+      // Also update not detected list
+      updateNotDetectedList();
     }
 
     function updateStatus(status, text) {
@@ -766,6 +834,265 @@
       const preRecordedVideo = document.getElementById('preRecordedVideo');
       const speed = parseFloat(document.getElementById('playbackSpeed').value);
       preRecordedVideo.playbackRate = speed;
+    }
+
+    // Not Yet Detected Panel Functions
+    function updateNotDetectedList() {
+      const list = document.getElementById('notDetectedList');
+      const countBadge = document.getElementById('notDetectedCount');
+      
+      // Get unmarked students
+      const unmarkedStudents = studentDescriptors.filter(student => 
+        !markedStudents.has(student._id.toString())
+      );
+      
+      countBadge.textContent = unmarkedStudents.length;
+      
+      if (unmarkedStudents.length === 0) {
+        list.innerHTML = '<p class="text-sm text-primary col-span-full text-center py-4">✓ All students detected!</p>';
+        return;
+      }
+      
+      list.innerHTML = unmarkedStudents.map(student => `
+        <div class="flex items-center gap-2 p-2 bg-background rounded-lg border border-border">
+          <div class="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center text-warning text-xs font-semibold">
+            ${student.fullName.split(' ').map(n => n[0]).join('')}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-medium text-foreground truncate">${student.fullName}</p>
+            <p class="text-xs text-muted">${student.rollNo}</p>
+          </div>
+          <button onclick="manualMarkStudent('${student._id}', '${student.fullName}', '${student.rollNo}')" 
+                  class="p-1 text-primary hover:bg-primary/10 rounded transition-all" title="Mark manually">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Manual mark student with quick actions
+    async function manualMarkStudent(studentId, fullName, rollNo) {
+      const status = await showManualMarkDialog(fullName);
+      if (!status) return;
+      
+      try {
+        const response = await fetch('/terminal/api/manual-mark-attendance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentId,
+            courseId: selectedCourseId,
+            classId: selectedClassId,
+            status
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          markedStudents.add(studentId);
+          addActivityItem({
+            ...data.attendance,
+            student: { fullName, rollNo }
+          });
+          updateStats();
+          updateNotDetectedList();
+        } else {
+          alert(data.error || 'Failed to mark attendance');
+        }
+      } catch (error) {
+        console.error('Error marking attendance:', error);
+        alert('Failed to mark attendance');
+      }
+    }
+
+    function showManualMarkDialog(studentName) {
+      return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4';
+        modal.innerHTML = `
+          <div class="bg-card border border-border rounded-xl p-6 w-full max-w-sm">
+            <h3 class="font-semibold text-foreground mb-2">Mark Attendance</h3>
+            <p class="text-sm text-muted mb-4">Select status for <strong>${studentName}</strong></p>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="this.closest('.fixed').dataset.result='present'" class="px-4 py-2 bg-primary text-background font-medium rounded-lg hover:bg-primary/90 transition-all">Present</button>
+              <button onclick="this.closest('.fixed').dataset.result='late'" class="px-4 py-2 bg-warning text-background font-medium rounded-lg hover:bg-warning/90 transition-all">Late</button>
+              <button onclick="this.closest('.fixed').dataset.result='absent'" class="px-4 py-2 bg-danger text-background font-medium rounded-lg hover:bg-danger/90 transition-all">Absent</button>
+            </div>
+            <button onclick="this.closest('.fixed').dataset.result='cancel'" class="w-full mt-3 px-4 py-2 bg-background border border-border text-foreground font-medium rounded-lg hover:bg-card transition-all">Cancel</button>
+          </div>
+        `;
+        
+        modal.addEventListener('click', (e) => {
+          const result = modal.dataset.result;
+          if (result) {
+            modal.remove();
+            resolve(result === 'cancel' ? null : result);
+          }
+        });
+        
+        document.body.appendChild(modal);
+      });
+    }
+
+    // End Session Modal Functions
+    async function openEndSessionModal() {
+      if (!selectedClassId || !selectedCourseId) {
+        alert('Please select a class and course first');
+        return;
+      }
+      
+      const modal = document.getElementById('endSessionModal');
+      const list = document.getElementById('unmarkedStudentsList');
+      
+      modal.classList.remove('hidden');
+      list.innerHTML = '<p class="text-muted text-center py-4">Loading...</p>';
+      
+      try {
+        const response = await fetch(`/terminal/api/unmarked-students/${selectedClassId}/${selectedCourseId}`);
+        const data = await response.json();
+        
+        if (data.unmarkedStudents.length === 0) {
+          list.innerHTML = `
+            <div class="text-center py-8">
+              <svg class="w-12 h-12 text-primary mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <p class="text-foreground font-medium">All students accounted for!</p>
+              <p class="text-sm text-muted mt-1">${data.markedCount} students have been marked</p>
+            </div>
+          `;
+          document.getElementById('markAllAbsent').parentElement.classList.add('hidden');
+        } else {
+          document.getElementById('markAllAbsent').parentElement.classList.remove('hidden');
+          list.innerHTML = `
+            <div class="mb-4 p-3 bg-warning/10 border border-warning/20 rounded-lg">
+              <p class="text-sm text-foreground">
+                <strong>${data.unmarkedStudents.length}</strong> students have not been detected yet.
+              </p>
+            </div>
+            <div class="space-y-2">
+              ${data.unmarkedStudents.map(student => `
+                <div class="flex items-center justify-between p-3 bg-background rounded-lg border border-border">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-muted/20 flex items-center justify-center text-muted font-semibold text-sm">
+                      ${student.fullName.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <p class="font-medium text-foreground">${student.fullName}</p>
+                      <p class="text-xs text-muted">${student.rollNo}</p>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button onclick="quickMarkFromModal('${student._id}', 'present', this)" class="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded hover:bg-primary/20 transition-all">Present</button>
+                    <button onclick="quickMarkFromModal('${student._id}', 'late', this)" class="px-3 py-1 bg-warning/10 text-warning text-sm font-medium rounded hover:bg-warning/20 transition-all">Late</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading unmarked students:', error);
+        list.innerHTML = '<p class="text-danger text-center py-4">Failed to load students</p>';
+      }
+    }
+
+    function closeEndSessionModal() {
+      document.getElementById('endSessionModal').classList.add('hidden');
+    }
+
+    async function quickMarkFromModal(studentId, status, button) {
+      const row = button.closest('.flex.items-center.justify-between');
+      
+      try {
+        const response = await fetch('/terminal/api/manual-mark-attendance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentId,
+            courseId: selectedCourseId,
+            classId: selectedClassId,
+            status
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          markedStudents.add(studentId);
+          addActivityItem(data.attendance);
+          updateStats();
+          updateNotDetectedList();
+          
+          // Update row to show marked
+          row.innerHTML = `
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-${status === 'present' ? 'primary' : 'warning'}/20 flex items-center justify-center text-${status === 'present' ? 'primary' : 'warning'} font-semibold text-sm">✓</div>
+              <div>
+                <p class="font-medium text-foreground">${data.attendance.student.fullName}</p>
+                <p class="text-xs text-muted">${data.attendance.student.rollNo}</p>
+              </div>
+            </div>
+            <span class="text-sm font-medium text-${status === 'present' ? 'primary' : 'warning'}">${status.toUpperCase()}</span>
+          `;
+        } else {
+          alert(data.error || 'Failed to mark attendance');
+        }
+      } catch (error) {
+        console.error('Error marking attendance:', error);
+        alert('Failed to mark attendance');
+      }
+    }
+
+    async function confirmEndSession() {
+      const markAbsent = document.getElementById('markAllAbsent').checked;
+      
+      try {
+        const response = await fetch('/terminal/api/end-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            classId: selectedClassId,
+            courseId: selectedCourseId,
+            markAbsent
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Add absent records to activity feed
+          if (markAbsent && data.unmarkedStudents) {
+            data.unmarkedStudents.forEach(student => {
+              markedStudents.add(student._id.toString());
+              addActivityItem({
+                student: { fullName: student.fullName, rollNo: student.rollNo },
+                status: 'absent',
+                timestamp: new Date()
+              });
+            });
+          }
+          
+          updateStats();
+          updateNotDetectedList();
+          closeEndSessionModal();
+          
+          // Stop recognition if active
+          if (isRecognitionActive) {
+            stopRecognition();
+          }
+          
+          alert(data.message);
+        } else {
+          alert(data.error || 'Failed to end session');
+        }
+      } catch (error) {
+        console.error('Error ending session:', error);
+        alert('Failed to end session');
+      }
     }
 
     loadTeacherData();
