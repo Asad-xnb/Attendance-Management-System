@@ -516,17 +516,23 @@
       if (filteredSessionData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-muted">No records found</td></tr>';
       } else {
-        tbody.innerHTML = filteredSessionData.map(record => `
+        tbody.innerHTML = filteredSessionData.map(record => {
+          const timestamp = record.timestamp ? new Date(record.timestamp) : null;
+          const dateStr = timestamp && !isNaN(timestamp) ? timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+          const timeStr = timestamp && !isNaN(timestamp) ? timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+          
+          return `
           <tr class="hover:bg-background/50">
             <td class="py-3 px-4 text-sm text-foreground">${record.studentRef?.fullName || 'Unknown'}</td>
             <td class="py-3 px-4 text-sm text-muted">${record.studentRef?.rollNo || 'N/A'}</td>
-            <td class="py-3 px-4 text-sm text-foreground">${new Date(record.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
-            <td class="py-3 px-4 text-sm text-foreground">${new Date(record.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+            <td class="py-3 px-4 text-sm text-foreground">${dateStr}</td>
+            <td class="py-3 px-4 text-sm text-foreground">${timeStr}</td>
             <td class="py-3 px-4">
               <span class="px-2 py-1 text-xs font-medium rounded-full ${statusColors[record.status]}">${record.status.charAt(0).toUpperCase() + record.status.slice(1)}</span>
             </td>
           </tr>
-        `).join('');
+        `;
+        }).join('');
       }
       
       // Update summary
@@ -651,15 +657,21 @@
         absent: 'bg-danger/10 text-danger border-danger/20'
       };
       
-      container.innerHTML = sessions.map(session => `
+      container.innerHTML = sessions.map(session => {
+        const timestamp = session.timestamp ? new Date(session.timestamp) : null;
+        const dateStr = timestamp && !isNaN(timestamp) ? timestamp.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A';
+        const timeStr = timestamp && !isNaN(timestamp) ? timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        
+        return `
         <div class="flex items-center justify-between p-4 rounded-lg border ${statusColors[session.status]}">
           <div>
-            <p class="font-medium text-foreground">${new Date(session.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
-            <p class="text-sm text-muted">Check-in: ${new Date(session.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+            <p class="font-medium text-foreground">${dateStr}</p>
+            <p class="text-sm text-muted">Check-in: ${timeStr}</p>
           </div>
           <span class="px-3 py-1 text-sm font-medium rounded-full ${statusColors[session.status].split(' ').slice(0, 2).join(' ')}">${session.status.charAt(0).toUpperCase() + session.status.slice(1)}</span>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function closeStudentSessionModal() {
@@ -678,7 +690,10 @@
       
       let csvContent = 'Student Name,Roll No,Date,Time,Status\n';
       filteredSessionData.forEach(record => {
-        csvContent += `"${record.studentRef?.fullName || 'Unknown'}","${record.studentRef?.rollNo || 'N/A'}","${new Date(record.sessionDate).toLocaleDateString()}","${new Date(record.timestamp).toLocaleTimeString()}","${record.status}"\n`;
+        const timestamp = record.timestamp ? new Date(record.timestamp) : null;
+        const dateStr = timestamp && !isNaN(timestamp) ? timestamp.toLocaleDateString() : 'N/A';
+        const timeStr = timestamp && !isNaN(timestamp) ? timestamp.toLocaleTimeString() : 'N/A';
+        csvContent += `"${record.studentRef?.fullName || 'Unknown'}","${record.studentRef?.rollNo || 'N/A'}","${dateStr}","${timeStr}","${record.status}"\n`;
       });
       <% } else { %>
       if (!studentData.subjects || studentData.subjects.length === 0) {
@@ -710,7 +725,10 @@
       
       let content = 'Student Name\tRoll No\tDate\tTime\tStatus\n';
       filteredSessionData.forEach(record => {
-        content += `${record.studentRef?.fullName || 'Unknown'}\t${record.studentRef?.rollNo || 'N/A'}\t${new Date(record.sessionDate).toLocaleDateString()}\t${new Date(record.timestamp).toLocaleTimeString()}\t${record.status}\n`;
+        const timestamp = record.timestamp ? new Date(record.timestamp) : null;
+        const dateStr = timestamp && !isNaN(timestamp) ? timestamp.toLocaleDateString() : 'N/A';
+        const timeStr = timestamp && !isNaN(timestamp) ? timestamp.toLocaleTimeString() : 'N/A';
+        content += `${record.studentRef?.fullName || 'Unknown'}\t${record.studentRef?.rollNo || 'N/A'}\t${dateStr}\t${timeStr}\t${record.status}\n`;
       });
       <% } else { %>
       if (!studentData.subjects || studentData.subjects.length === 0) {
