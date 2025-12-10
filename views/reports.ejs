@@ -29,95 +29,31 @@
       </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-card border border-border rounded-xl p-6 mb-6">
-      <h3 class="font-semibold text-foreground mb-4">Filter Records</h3>
-      <% if (user.role === 'admin' || user.role === 'teacher') { %>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-muted mb-2">Date From</label>
-          <input type="date" id="dateFrom" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-muted mb-2">Date To</label>
-          <input type="date" id="dateTo" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-muted mb-2">Class</label>
-          <select id="classFilter" onchange="onClassChange()" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-            <option value="">All Classes</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-muted mb-2">Course</label>
-          <select id="courseFilter" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-            <option value="">All Courses</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-muted mb-2">Status</label>
-          <select id="statusFilter" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-            <option value="">All Status</option>
-            <option value="present">Present</option>
-            <option value="late">Late</option>
-            <option value="absent">Absent</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-muted mb-2">Search</label>
-          <div class="relative">
-            <input type="text" id="searchInput" placeholder="Name or ID..." class="w-full px-4 py-2.5 pl-10 bg-background border border-border rounded-lg text-foreground placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-            <svg class="w-5 h-5 text-muted absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-      <% } else { %>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-muted mb-2">Date From</label>
-          <input type="date" id="dateFrom" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-muted mb-2">Date To</label>
-          <input type="date" id="dateTo" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-muted mb-2">Course</label>
-          <select id="courseFilter" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-            <option value="">All Courses</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-muted mb-2">Status</label>
-          <select id="statusFilter" class="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-            <option value="">All Status</option>
-            <option value="present">Present</option>
-            <option value="late">Late</option>
-            <option value="absent">Absent</option>
-          </select>
-        </div>
-      </div>
-      <% } %>
-      <div class="mt-4 flex justify-end">
-        <button onclick="applyFilters()" class="py-2.5 px-6 bg-primary text-background font-medium rounded-lg hover:bg-primary/90 transition-all">
-          Apply Filters
-        </button>
-      </div>
-    </div>
-
+    <% if (user.role === 'admin' || user.role === 'teacher') { %>
+    <!-- ============ ADMIN/TEACHER VIEW ============ -->
+    
     <!-- Summary Stats -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-          <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
+          <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
           </svg>
         </div>
         <div>
-          <p class="text-2xl font-bold text-foreground" id="totalRecords">0</p>
-          <p class="text-sm text-muted">Total Records</p>
+          <p class="text-2xl font-bold text-foreground" id="totalClasses">0</p>
+          <p class="text-sm text-muted">Classes</p>
+        </div>
+      </div>
+      <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center">
+          <svg class="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-foreground" id="totalCourses">0</p>
+          <p class="text-sm text-muted">Courses</p>
         </div>
       </div>
       <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
@@ -127,8 +63,140 @@
           </svg>
         </div>
         <div>
+          <p class="text-2xl font-bold text-foreground" id="totalSessions">0</p>
+          <p class="text-sm text-muted">Total Sessions</p>
+        </div>
+      </div>
+      <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+          <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+        <div>
           <p class="text-2xl font-bold text-foreground" id="avgAttendance">0%</p>
           <p class="text-sm text-muted">Avg. Attendance</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hierarchical View: Classes -->
+    <div class="space-y-4" id="classesContainer">
+      <div class="text-center py-12 text-muted">
+        <svg class="w-12 h-12 mx-auto mb-4 opacity-50 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        <p>Loading classes...</p>
+      </div>
+    </div>
+
+    <!-- Session Details Modal -->
+    <div id="sessionModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50" onclick="if(event.target === this) closeSessionModal()">
+      <div class="bg-card border border-border rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div class="p-6 border-b border-border flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-semibold text-foreground" id="modalTitle">Session Details</h3>
+            <p class="text-sm text-muted" id="modalSubtitle"></p>
+          </div>
+          <button onclick="closeSessionModal()" class="text-muted hover:text-foreground">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Filters -->
+        <div class="p-4 border-b border-border bg-background">
+          <div class="flex flex-wrap gap-4 items-end">
+            <div class="flex-1 min-w-[200px]">
+              <label class="block text-xs font-medium text-muted mb-1">Search Student</label>
+              <input type="text" id="sessionSearch" placeholder="Name or Roll No..." 
+                class="w-full px-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                oninput="filterSessionData()">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-muted mb-1">Date From</label>
+              <input type="date" id="sessionDateFrom" 
+                class="px-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                onchange="filterSessionData()">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-muted mb-1">Date To</label>
+              <input type="date" id="sessionDateTo" 
+                class="px-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                onchange="filterSessionData()">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-muted mb-1">Status</label>
+              <select id="sessionStatus" 
+                class="px-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                onchange="filterSessionData()">
+                <option value="">All</option>
+                <option value="present">Present</option>
+                <option value="late">Late</option>
+                <option value="absent">Absent</option>
+              </select>
+            </div>
+            <button onclick="clearSessionFilters()" class="px-3 py-2 text-sm text-muted hover:text-foreground">
+              Clear
+            </button>
+          </div>
+        </div>
+        
+        <!-- Session List -->
+        <div class="overflow-y-auto max-h-[50vh]" id="sessionListContainer">
+          <table class="w-full">
+            <thead class="bg-background sticky top-0">
+              <tr>
+                <th class="text-left py-3 px-4 text-xs font-medium text-muted">Student</th>
+                <th class="text-left py-3 px-4 text-xs font-medium text-muted">Roll No</th>
+                <th class="text-left py-3 px-4 text-xs font-medium text-muted">Date</th>
+                <th class="text-left py-3 px-4 text-xs font-medium text-muted">Time</th>
+                <th class="text-left py-3 px-4 text-xs font-medium text-muted">Status</th>
+              </tr>
+            </thead>
+            <tbody id="sessionTableBody" class="divide-y divide-border">
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Summary -->
+        <div class="p-4 border-t border-border bg-background flex justify-between items-center">
+          <p class="text-sm text-muted" id="sessionSummary">0 records</p>
+          <div class="flex gap-4 text-sm">
+            <span class="text-primary" id="sessionPresent">0 Present</span>
+            <span class="text-warning" id="sessionLate">0 Late</span>
+            <span class="text-danger" id="sessionAbsent">0 Absent</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <% } else { %>
+    <!-- ============ STUDENT VIEW ============ -->
+    
+    <!-- Student Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+          <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-foreground" id="studentTotalCourses">0</p>
+          <p class="text-sm text-muted">Enrolled Courses</p>
+        </div>
+      </div>
+      <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+          <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-foreground" id="studentOverallAttendance">0%</p>
+          <p class="text-sm text-muted">Overall Attendance</p>
         </div>
       </div>
       <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
@@ -138,265 +206,472 @@
           </svg>
         </div>
         <div>
-          <p class="text-2xl font-bold text-foreground" id="lateEntries">0</p>
-          <p class="text-sm text-muted">Late Entries</p>
-        </div>
-      </div>
-      <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl bg-danger/10 flex items-center justify-center">
-          <svg class="w-6 h-6 text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-          </svg>
-        </div>
-        <div>
-          <p class="text-2xl font-bold text-foreground" id="absences">0</p>
-          <p class="text-sm text-muted">Absences</p>
+          <p class="text-2xl font-bold text-foreground" id="studentTotalSessions">0</p>
+          <p class="text-sm text-muted">Total Sessions</p>
         </div>
       </div>
     </div>
 
-    <!-- Data Table -->
-    <div class="bg-card border border-border rounded-xl overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-background">
-            <tr>
-              <% if (user.role === 'admin' || user.role === 'teacher') { %>
-              <th class="text-left py-4 px-6 text-sm font-medium text-muted">Student</th>
-              <th class="text-left py-4 px-6 text-sm font-medium text-muted">ID</th>
-              <% } %>
-              <th class="text-left py-4 px-6 text-sm font-medium text-muted">Class</th>
-              <th class="text-left py-4 px-6 text-sm font-medium text-muted">Course</th>
-              <th class="text-left py-4 px-6 text-sm font-medium text-muted">Date</th>
-              <th class="text-left py-4 px-6 text-sm font-medium text-muted">Check In</th>
-              <th class="text-left py-4 px-6 text-sm font-medium text-muted">Status</th>
-            </tr>
-          </thead>
-          <tbody id="reportTableBody" class="divide-y divide-border">
-            <tr>
-              <td colspan="7" class="py-8 text-center text-muted">Loading records...</td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Subject Cards -->
+    <h3 class="font-semibold text-foreground mb-4">Your Subjects</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="studentSubjectsContainer">
+      <div class="col-span-full text-center py-12 text-muted">
+        <svg class="w-12 h-12 mx-auto mb-4 opacity-50 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        <p>Loading subjects...</p>
       </div>
-      
-      <!-- Pagination -->
-      <div class="flex items-center justify-between px-6 py-4 border-t border-border">
-        <p class="text-sm text-muted" id="paginationInfo">Showing 0 records</p>
-        <div class="flex items-center gap-2" id="paginationControls">
-          <!-- Pagination controls will be added here -->
+    </div>
+
+    <!-- Student Session Details Modal -->
+    <div id="studentSessionModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50" onclick="if(event.target === this) closeStudentSessionModal()">
+      <div class="bg-card border border-border rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div class="p-6 border-b border-border flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-semibold text-foreground" id="studentModalTitle">Subject Sessions</h3>
+            <p class="text-sm text-muted" id="studentModalSubtitle"></p>
+          </div>
+          <button onclick="closeStudentSessionModal()" class="text-muted hover:text-foreground">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Session List -->
+        <div class="overflow-y-auto max-h-[60vh] p-4">
+          <div class="space-y-2" id="studentSessionList">
+          </div>
+        </div>
+        
+        <!-- Summary -->
+        <div class="p-4 border-t border-border bg-background flex justify-between items-center">
+          <p class="text-sm text-muted" id="studentSessionSummary">0 sessions</p>
+          <div class="flex gap-4 text-sm">
+            <span class="text-primary" id="studentSessionPresent">0 Present</span>
+            <span class="text-warning" id="studentSessionLate">0 Late</span>
+          </div>
         </div>
       </div>
     </div>
+    <% } %>
   </main>
 
   <script>
     const userRole = '<%= user.role %>';
-    let currentData = [];
+    let allData = {};
+    let currentSessionData = [];
+    let filteredSessionData = [];
 
-    // Load classes for filter dropdown
-    async function loadClasses() {
-      if (userRole === 'admin' || userRole === 'teacher') {
-        try {
-          const response = await fetch('/reports/api/reports/classes');
-          const classes = await response.json();
-          const classFilter = document.getElementById('classFilter');
-          classes.forEach(cls => {
-            const option = document.createElement('option');
-            option.value = cls._id;
-            option.textContent = `${cls.name} - Semester ${cls.semester} - Section ${cls.section}`;
-            classFilter.appendChild(option);
-          });
-        } catch (error) {
-          console.error('Error loading classes:', error);
-        }
-      }
-    }
-
-    // Load courses for filter dropdown
-    async function loadCourses(classId = '') {
-      if (userRole === 'admin' || userRole === 'teacher' || userRole === 'student') {
-        try {
-          const params = new URLSearchParams();
-          if (classId) params.append('classId', classId);
-          
-          const response = await fetch(`/reports/api/reports/courses?${params}`);
-          const courses = await response.json();
-          const courseFilter = document.getElementById('courseFilter');
-          
-          // Clear existing options except "All Courses"
-          courseFilter.innerHTML = '<option value="">All Courses</option>';
-          
-          courses.forEach(course => {
-            const option = document.createElement('option');
-            option.value = course._id;
-            option.textContent = `${course.code} - ${course.name}`;
-            courseFilter.appendChild(option);
-          });
-        } catch (error) {
-          console.error('Error loading courses:', error);
-        }
-      }
-    }
-
-    // Handle class change event
-    function onClassChange() {
-      const classId = document.getElementById('classFilter').value;
-      loadCourses(classId);
-    }
-
-    // Load reports data based on role
-    async function loadReportsData() {
+    <% if (user.role === 'admin' || user.role === 'teacher') { %>
+    // ============ ADMIN/TEACHER FUNCTIONS ============
+    
+    async function loadAdminData() {
       try {
-        const params = new URLSearchParams(getFilters());
-        let endpoint = '';
-        
-        if (userRole === 'admin') {
-          endpoint = '/reports/api/reports/admin-data';
-        } else if (userRole === 'teacher') {
-          endpoint = '/reports/api/reports/teacher-data';
-        } else if (userRole === 'student') {
-          endpoint = '/reports/api/reports/student-data';
-        }
-        
-        const response = await fetch(`${endpoint}?${params}`);
+        const endpoint = userRole === 'admin' ? '/reports/api/reports/admin-hierarchy' : '/reports/api/reports/teacher-hierarchy';
+        const response = await fetch(endpoint);
         const data = await response.json();
         
-        currentData = data.records;
-        updateSummaryStats(data.summary);
-        renderTable(data.records);
+        allData = data;
+        renderClassHierarchy(data);
+        updateAdminStats(data);
       } catch (error) {
-        document.getElementById('reportTableBody').innerHTML = `
-          <tr>
-            <td colspan="7" class="py-8 text-center text-danger">Error loading reports: ${error.message}</td>
-          </tr>
+        console.error('Error loading data:', error);
+        document.getElementById('classesContainer').innerHTML = `
+          <div class="text-center py-12 text-danger">
+            <p>Error loading data: ${error.message}</p>
+          </div>
         `;
       }
     }
 
-    // Get filter values
-    function getFilters() {
-      const filters = {};
+    function updateAdminStats(data) {
+      let totalClasses = 0;
+      let totalCourses = 0;
+      let totalSessions = 0;
+      let totalPresent = 0;
+      let totalRecords = 0;
+
+      data.classes.forEach(cls => {
+        totalClasses++;
+        cls.courses.forEach(course => {
+          totalCourses++;
+          totalSessions += course.sessionCount;
+          totalPresent += course.presentCount;
+          totalRecords += course.totalRecords;
+        });
+      });
+
+      document.getElementById('totalClasses').textContent = totalClasses;
+      document.getElementById('totalCourses').textContent = totalCourses;
+      document.getElementById('totalSessions').textContent = totalSessions;
+      document.getElementById('avgAttendance').textContent = totalRecords > 0 ? ((totalPresent / totalRecords) * 100).toFixed(1) + '%' : '0%';
+    }
+
+    function renderClassHierarchy(data) {
+      const container = document.getElementById('classesContainer');
       
-      const dateFrom = document.getElementById('dateFrom').value;
-      const dateTo = document.getElementById('dateTo').value;
-      const status = document.getElementById('statusFilter').value;
+      if (!data.classes || data.classes.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-muted">
+            <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+            </svg>
+            <p>No classes found</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = data.classes.map(cls => `
+        <div class="bg-card border border-border rounded-xl overflow-hidden">
+          <!-- Class Header -->
+          <button onclick="toggleClass('${cls._id}')" class="w-full p-4 flex items-center justify-between hover:bg-background/50 transition-all">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+              </div>
+              <div class="text-left">
+                <h3 class="font-semibold text-foreground">${cls.name} - Sem ${cls.semester} (${cls.section})</h3>
+                <p class="text-sm text-muted">${cls.courses.length} courses • ${cls.studentCount} students</p>
+              </div>
+            </div>
+            <svg id="chevron-${cls._id}" class="w-5 h-5 text-muted transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          
+          <!-- Courses (hidden by default) -->
+          <div id="courses-${cls._id}" class="hidden border-t border-border">
+            ${cls.courses.length === 0 ? `
+              <p class="text-sm text-muted text-center py-6">No courses in this class</p>
+            ` : cls.courses.map(course => `
+              <div class="border-b border-border last:border-b-0">
+                <button onclick="toggleCourse('${cls._id}', '${course._id}')" class="w-full p-4 pl-12 flex items-center justify-between hover:bg-background/50 transition-all">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+                      <svg class="w-4 h-4 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                      </svg>
+                    </div>
+                    <div class="text-left">
+                      <h4 class="font-medium text-foreground">${course.name}</h4>
+                      <p class="text-xs text-muted">${course.code} • ${course.sessionCount} sessions</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <div class="text-right">
+                      <p class="text-sm font-semibold ${course.attendanceRate >= 75 ? 'text-primary' : course.attendanceRate >= 50 ? 'text-warning' : 'text-danger'}">${course.attendanceRate}%</p>
+                      <p class="text-xs text-muted">attendance</p>
+                    </div>
+                    <svg id="chevron-${cls._id}-${course._id}" class="w-4 h-4 text-muted transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                  </div>
+                </button>
+                
+                <!-- Sessions (hidden by default) -->
+                <div id="sessions-${cls._id}-${course._id}" class="hidden bg-background/50">
+                  <div class="p-4 pl-16 space-y-2">
+                    ${course.sessions.length === 0 ? `
+                      <p class="text-sm text-muted text-center py-4">No sessions recorded yet</p>
+                    ` : course.sessions.slice(0, 5).map(session => `
+                      <div onclick="openSessionModal('${course._id}', '${course.name.replace(/'/g, "\\'")}', '${cls.name.replace(/'/g, "\\'")}')" class="flex items-center justify-between p-3 bg-card rounded-lg cursor-pointer hover:bg-card/80 transition-all">
+                        <div class="flex items-center gap-3">
+                          <div class="w-2 h-2 rounded-full ${session.attendanceRate >= 75 ? 'bg-primary' : session.attendanceRate >= 50 ? 'bg-warning' : 'bg-danger'}"></div>
+                          <div>
+                            <p class="text-sm font-medium text-foreground">${new Date(session.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+                            <p class="text-xs text-muted">${session.presentCount}/${session.totalCount} present</p>
+                          </div>
+                        </div>
+                        <span class="text-sm ${session.attendanceRate >= 75 ? 'text-primary' : session.attendanceRate >= 50 ? 'text-warning' : 'text-danger'}">${session.attendanceRate}%</span>
+                      </div>
+                    `).join('')}
+                    ${course.sessions.length > 5 ? `
+                      <button onclick="openSessionModal('${course._id}', '${course.name.replace(/'/g, "\\'")}', '${cls.name.replace(/'/g, "\\'")}')" class="w-full p-2 text-sm text-primary hover:text-primary/80 text-center">
+                        View all ${course.sessions.length} sessions →
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleClass(classId) {
+      const coursesDiv = document.getElementById(`courses-${classId}`);
+      const chevron = document.getElementById(`chevron-${classId}`);
       
-      if (dateFrom) filters.dateFrom = dateFrom;
-      if (dateTo) filters.dateTo = dateTo;
-      if (status) filters.status = status;
+      if (coursesDiv.classList.contains('hidden')) {
+        coursesDiv.classList.remove('hidden');
+        chevron.style.transform = 'rotate(180deg)';
+      } else {
+        coursesDiv.classList.add('hidden');
+        chevron.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    function toggleCourse(classId, courseId) {
+      const sessionsDiv = document.getElementById(`sessions-${classId}-${courseId}`);
+      const chevron = document.getElementById(`chevron-${classId}-${courseId}`);
       
-      if (userRole === 'admin' || userRole === 'teacher') {
-        const classId = document.getElementById('classFilter').value;
-        const courseId = document.getElementById('courseFilter').value;
-        const search = document.getElementById('searchInput').value;
+      if (sessionsDiv.classList.contains('hidden')) {
+        sessionsDiv.classList.remove('hidden');
+        chevron.style.transform = 'rotate(180deg)';
+      } else {
+        sessionsDiv.classList.add('hidden');
+        chevron.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    async function openSessionModal(courseId, courseName, className) {
+      document.getElementById('sessionModal').classList.remove('hidden');
+      document.getElementById('modalTitle').textContent = courseName;
+      document.getElementById('modalSubtitle').textContent = className;
+      document.getElementById('sessionTableBody').innerHTML = '<tr><td colspan="5" class="py-8 text-center text-muted">Loading...</td></tr>';
+      
+      try {
+        const response = await fetch(`/reports/api/reports/course-sessions/${courseId}`);
+        const data = await response.json();
         
-        if (classId) filters.classId = classId;
-        if (courseId) filters.courseId = courseId;
-        if (search) filters.search = search;
-      } else if (userRole === 'student') {
-        const courseId = document.getElementById('courseFilter').value;
-        if (courseId) filters.courseId = courseId;
+        currentSessionData = data.records;
+        filteredSessionData = [...currentSessionData];
+        renderSessionTable();
+      } catch (error) {
+        document.getElementById('sessionTableBody').innerHTML = `<tr><td colspan="5" class="py-8 text-center text-danger">Error: ${error.message}</td></tr>`;
+      }
+    }
+
+    function closeSessionModal() {
+      document.getElementById('sessionModal').classList.add('hidden');
+      clearSessionFilters();
+    }
+
+    function filterSessionData() {
+      const search = document.getElementById('sessionSearch').value.toLowerCase();
+      const dateFrom = document.getElementById('sessionDateFrom').value;
+      const dateTo = document.getElementById('sessionDateTo').value;
+      const status = document.getElementById('sessionStatus').value;
+      
+      filteredSessionData = currentSessionData.filter(record => {
+        if (search && !record.studentRef?.fullName?.toLowerCase().includes(search) && !record.studentRef?.rollNo?.toLowerCase().includes(search)) {
+          return false;
+        }
+        if (dateFrom && new Date(record.sessionDate) < new Date(dateFrom)) {
+          return false;
+        }
+        if (dateTo && new Date(record.sessionDate) > new Date(dateTo)) {
+          return false;
+        }
+        if (status && record.status !== status) {
+          return false;
+        }
+        return true;
+      });
+      
+      renderSessionTable();
+    }
+
+    function clearSessionFilters() {
+      document.getElementById('sessionSearch').value = '';
+      document.getElementById('sessionDateFrom').value = '';
+      document.getElementById('sessionDateTo').value = '';
+      document.getElementById('sessionStatus').value = '';
+      filteredSessionData = [...currentSessionData];
+      renderSessionTable();
+    }
+
+    function renderSessionTable() {
+      const tbody = document.getElementById('sessionTableBody');
+      const statusColors = {
+        present: 'bg-primary/10 text-primary',
+        late: 'bg-warning/10 text-warning',
+        absent: 'bg-danger/10 text-danger'
+      };
+      
+      if (filteredSessionData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-muted">No records found</td></tr>';
+      } else {
+        tbody.innerHTML = filteredSessionData.map(record => `
+          <tr class="hover:bg-background/50">
+            <td class="py-3 px-4 text-sm text-foreground">${record.studentRef?.fullName || 'Unknown'}</td>
+            <td class="py-3 px-4 text-sm text-muted">${record.studentRef?.rollNo || 'N/A'}</td>
+            <td class="py-3 px-4 text-sm text-foreground">${new Date(record.sessionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+            <td class="py-3 px-4 text-sm text-foreground">${new Date(record.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-1 text-xs font-medium rounded-full ${statusColors[record.status]}">${record.status.charAt(0).toUpperCase() + record.status.slice(1)}</span>
+            </td>
+          </tr>
+        `).join('');
       }
       
-      return filters;
-    }
-
-    // Update summary stats
-    function updateSummaryStats(summary) {
-      document.getElementById('totalRecords').textContent = summary.totalRecords.toLocaleString();
-      document.getElementById('avgAttendance').textContent = summary.avgAttendance + '%';
-      document.getElementById('lateEntries').textContent = summary.lateCount.toLocaleString();
-      document.getElementById('absences').textContent = summary.absentCount.toLocaleString();
-    }
-
-    // Render table with records
-    function renderTable(records) {
-      const tbody = document.getElementById('reportTableBody');
+      // Update summary
+      const presentCount = filteredSessionData.filter(r => r.status === 'present').length;
+      const lateCount = filteredSessionData.filter(r => r.status === 'late').length;
+      const absentCount = filteredSessionData.filter(r => r.status === 'absent').length;
       
-      if (records.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="py-8 text-center text-muted">No records found</td>
-          </tr>
+      document.getElementById('sessionSummary').textContent = `${filteredSessionData.length} records`;
+      document.getElementById('sessionPresent').textContent = `${presentCount} Present`;
+      document.getElementById('sessionLate').textContent = `${lateCount} Late`;
+      document.getElementById('sessionAbsent').textContent = `${absentCount} Absent`;
+    }
+
+    <% } else { %>
+    // ============ STUDENT FUNCTIONS ============
+    
+    let studentData = {};
+
+    async function loadStudentData() {
+      try {
+        const response = await fetch('/reports/api/reports/student-subjects');
+        const data = await response.json();
+        
+        studentData = data;
+        renderStudentSubjects(data);
+        updateStudentStats(data);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        document.getElementById('studentSubjectsContainer').innerHTML = `
+          <div class="col-span-full text-center py-12 text-danger">
+            <p>Error loading data: ${error.message}</p>
+          </div>
         `;
-        document.getElementById('paginationInfo').textContent = 'Showing 0 records';
+      }
+    }
+
+    function updateStudentStats(data) {
+      document.getElementById('studentTotalCourses').textContent = data.subjects.length;
+      document.getElementById('studentOverallAttendance').textContent = data.overallAttendance + '%';
+      document.getElementById('studentTotalSessions').textContent = data.totalSessions;
+    }
+
+    function renderStudentSubjects(data) {
+      const container = document.getElementById('studentSubjectsContainer');
+      
+      if (!data.subjects || data.subjects.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-12 text-muted">
+            <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            <p>No subjects found</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = data.subjects.map(subject => {
+        const percentage = subject.attendanceRate;
+        const colorClass = percentage >= 75 ? 'text-primary' : percentage >= 50 ? 'text-warning' : 'text-danger';
+        const bgClass = percentage >= 75 ? 'bg-primary' : percentage >= 50 ? 'bg-warning' : 'bg-danger';
+        
+        return `
+          <div onclick="openStudentSubjectModal('${subject.courseId}', '${subject.name.replace(/'/g, "\\'")}', '${subject.code}')" 
+               class="bg-card border border-border rounded-xl p-6 cursor-pointer hover:border-primary transition-all">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h4 class="font-semibold text-foreground">${subject.name}</h4>
+                <p class="text-sm text-muted">${subject.code}</p>
+              </div>
+              <span class="text-2xl font-bold ${colorClass}">${percentage}%</span>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="h-2 bg-background rounded-full overflow-hidden mb-3">
+              <div class="${bgClass} h-full rounded-full transition-all" style="width: ${percentage}%"></div>
+            </div>
+            
+            <div class="flex justify-between text-xs text-muted">
+              <span>${subject.presentCount + subject.lateCount}/${subject.totalSessions} attended</span>
+              <span>${subject.lateCount} late</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function openStudentSubjectModal(courseId, courseName, courseCode) {
+      document.getElementById('studentSessionModal').classList.remove('hidden');
+      document.getElementById('studentModalTitle').textContent = courseName;
+      document.getElementById('studentModalSubtitle').textContent = courseCode;
+      document.getElementById('studentSessionList').innerHTML = '<div class="text-center py-8 text-muted">Loading...</div>';
+      
+      try {
+        const response = await fetch(`/reports/api/reports/student-course-sessions/${courseId}`);
+        const data = await response.json();
+        
+        renderStudentSessions(data.sessions);
+        
+        const presentCount = data.sessions.filter(s => s.status === 'present').length;
+        const lateCount = data.sessions.filter(s => s.status === 'late').length;
+        
+        document.getElementById('studentSessionSummary').textContent = `${data.sessions.length} sessions`;
+        document.getElementById('studentSessionPresent').textContent = `${presentCount} Present`;
+        document.getElementById('studentSessionLate').textContent = `${lateCount} Late`;
+      } catch (error) {
+        document.getElementById('studentSessionList').innerHTML = `<div class="text-center py-8 text-danger">Error: ${error.message}</div>`;
+      }
+    }
+
+    function renderStudentSessions(sessions) {
+      const container = document.getElementById('studentSessionList');
+      
+      if (sessions.length === 0) {
+        container.innerHTML = '<div class="text-center py-8 text-muted">No sessions recorded yet</div>';
         return;
       }
       
-      tbody.innerHTML = records.map(record => {
-        const date = new Date(record.sessionDate);
-        const time = new Date(record.timestamp);
-        const statusColors = {
-          present: 'bg-primary/10 text-primary',
-          late: 'bg-warning/10 text-warning',
-          absent: 'bg-danger/10 text-danger'
-        };
-        
-        let studentCell = '';
-        let idCell = '';
-        
-        if (userRole === 'admin' || userRole === 'teacher') {
-          const initials = record.studentRef?.fullName?.split(' ').map(n => n[0]).join('') || '?';
-          studentCell = `
-            <td class="py-4 px-6">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-semibold">${initials}</div>
-                <span class="text-sm text-foreground">${record.studentRef?.fullName || 'Unknown'}</span>
-              </div>
-            </td>
-          `;
-          idCell = `<td class="py-4 px-6 text-sm text-muted">${record.studentRef?.rollNo || 'N/A'}</td>`;
-        }
-        
-        return `
-          <tr class="hover:bg-background/50 transition-colors">
-            ${studentCell}
-            ${idCell}
-            <td class="py-4 px-6 text-sm text-foreground">${record.classRef?.name || 'N/A'}</td>
-            <td class="py-4 px-6 text-sm text-foreground">${record.courseRef?.name || 'N/A'}</td>
-            <td class="py-4 px-6 text-sm text-foreground">${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
-            <td class="py-4 px-6 text-sm text-foreground">${time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-            <td class="py-4 px-6">
-              <span class="px-2.5 py-1 text-xs font-medium rounded-full ${statusColors[record.status]}">${record.status.charAt(0).toUpperCase() + record.status.slice(1)}</span>
-            </td>
-          </tr>
-        `;
-      }).join('');
+      const statusColors = {
+        present: 'bg-primary/10 text-primary border-primary/20',
+        late: 'bg-warning/10 text-warning border-warning/20',
+        absent: 'bg-danger/10 text-danger border-danger/20'
+      };
       
-      document.getElementById('paginationInfo').textContent = `Showing ${records.length} record${records.length !== 1 ? 's' : ''}`;
+      container.innerHTML = sessions.map(session => `
+        <div class="flex items-center justify-between p-4 rounded-lg border ${statusColors[session.status]}">
+          <div>
+            <p class="font-medium text-foreground">${new Date(session.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+            <p class="text-sm text-muted">Check-in: ${new Date(session.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+          </div>
+          <span class="px-3 py-1 text-sm font-medium rounded-full ${statusColors[session.status].split(' ').slice(0, 2).join(' ')}">${session.status.charAt(0).toUpperCase() + session.status.slice(1)}</span>
+        </div>
+      `).join('');
     }
 
-    // Apply filters
-    function applyFilters() {
-      loadReportsData();
+    function closeStudentSessionModal() {
+      document.getElementById('studentSessionModal').classList.add('hidden');
     }
+    <% } %>
 
-    // Export to CSV
+    // ============ COMMON FUNCTIONS ============
+    
     function exportCSV() {
-      if (currentData.length === 0) {
+      <% if (user.role === 'admin' || user.role === 'teacher') { %>
+      if (!currentSessionData || currentSessionData.length === 0) {
+        alert('Please open a course session first to export data');
+        return;
+      }
+      
+      let csvContent = 'Student Name,Roll No,Date,Time,Status\n';
+      filteredSessionData.forEach(record => {
+        csvContent += `"${record.studentRef?.fullName || 'Unknown'}","${record.studentRef?.rollNo || 'N/A'}","${new Date(record.sessionDate).toLocaleDateString()}","${new Date(record.timestamp).toLocaleTimeString()}","${record.status}"\n`;
+      });
+      <% } else { %>
+      if (!studentData.subjects || studentData.subjects.length === 0) {
         alert('No data to export');
         return;
       }
       
-      let csvContent = '';
-      
-      // Headers
-      if (userRole === 'admin' || userRole === 'teacher') {
-        csvContent = 'Student Name,Student ID,Class,Course,Date,Time,Status\n';
-        currentData.forEach(record => {
-          const date = new Date(record.sessionDate);
-          const time = new Date(record.timestamp);
-          csvContent += `"${record.studentRef?.fullName || 'Unknown'}","${record.studentRef?.rollNo || 'N/A'}","${record.classRef?.name || 'N/A'}","${record.courseRef?.name || 'N/A'}","${date.toLocaleDateString()}","${time.toLocaleTimeString()}","${record.status}"\n`;
-        });
-      } else {
-        csvContent = 'Class,Course,Date,Time,Status\n';
-        currentData.forEach(record => {
-          const date = new Date(record.sessionDate);
-          const time = new Date(record.timestamp);
-          csvContent += `"${record.classRef?.name || 'N/A'}","${record.courseRef?.name || 'N/A'}","${date.toLocaleDateString()}","${time.toLocaleTimeString()}","${record.status}"\n`;
-        });
-      }
+      let csvContent = 'Course,Code,Attendance %,Present,Late,Total Sessions\n';
+      studentData.subjects.forEach(subject => {
+        csvContent += `"${subject.name}","${subject.code}","${subject.attendanceRate}%","${subject.presentCount}","${subject.lateCount}","${subject.totalSessions}"\n`;
+      });
+      <% } %>
       
       const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
@@ -407,32 +682,30 @@
       window.URL.revokeObjectURL(url);
     }
 
-    // Export to Excel (using CSV format with .xls extension)
     function exportExcel() {
-      if (currentData.length === 0) {
+      <% if (user.role === 'admin' || user.role === 'teacher') { %>
+      if (!currentSessionData || currentSessionData.length === 0) {
+        alert('Please open a course session first to export data');
+        return;
+      }
+      
+      let content = 'Student Name\tRoll No\tDate\tTime\tStatus\n';
+      filteredSessionData.forEach(record => {
+        content += `${record.studentRef?.fullName || 'Unknown'}\t${record.studentRef?.rollNo || 'N/A'}\t${new Date(record.sessionDate).toLocaleDateString()}\t${new Date(record.timestamp).toLocaleTimeString()}\t${record.status}\n`;
+      });
+      <% } else { %>
+      if (!studentData.subjects || studentData.subjects.length === 0) {
         alert('No data to export');
         return;
       }
       
-      let csvContent = '';
+      let content = 'Course\tCode\tAttendance %\tPresent\tLate\tTotal Sessions\n';
+      studentData.subjects.forEach(subject => {
+        content += `${subject.name}\t${subject.code}\t${subject.attendanceRate}%\t${subject.presentCount}\t${subject.lateCount}\t${subject.totalSessions}\n`;
+      });
+      <% } %>
       
-      if (userRole === 'admin' || userRole === 'teacher') {
-        csvContent = 'Student Name\tStudent ID\tClass\tCourse\tDate\tTime\tStatus\n';
-        currentData.forEach(record => {
-          const date = new Date(record.sessionDate);
-          const time = new Date(record.timestamp);
-          csvContent += `${record.studentRef?.fullName || 'Unknown'}\t${record.studentRef?.rollNo || 'N/A'}\t${record.classRef?.name || 'N/A'}\t${record.courseRef?.name || 'N/A'}\t${date.toLocaleDateString()}\t${time.toLocaleTimeString()}\t${record.status}\n`;
-        });
-      } else {
-        csvContent = 'Class\tCourse\tDate\tTime\tStatus\n';
-        currentData.forEach(record => {
-          const date = new Date(record.sessionDate);
-          const time = new Date(record.timestamp);
-          csvContent += `${record.classRef?.name || 'N/A'}\t${record.courseRef?.name || 'N/A'}\t${date.toLocaleDateString()}\t${time.toLocaleTimeString()}\t${record.status}\n`;
-        });
-      }
-      
-      const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel' });
+      const blob = new Blob([content], { type: 'application/vnd.ms-excel' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -441,11 +714,13 @@
       window.URL.revokeObjectURL(url);
     }
 
-    // Initialize on page load
+    // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-      loadClasses();
-      loadCourses();
-      loadReportsData();
+      <% if (user.role === 'admin' || user.role === 'teacher') { %>
+      loadAdminData();
+      <% } else { %>
+      loadStudentData();
+      <% } %>
     });
   </script>
 </body>
