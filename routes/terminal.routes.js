@@ -93,14 +93,17 @@ router.post('/api/mark-attendance', isAuthenticated, hasRole('admin', 'teacher')
       });
     }
     
-    // Fetch user settings to get lateCutoffTime
+    // Fetch user settings to get lateCutoffTime (cache this in session for performance)
     const userModel = req.session.userModel || 'Teacher';
     const userId = req.session.userId;
     
-    let settings = await Settings.findOne({ userId, userModel }).lean();
+    let settings = req.session.cachedSettings;
     if (!settings) {
-      // Create default settings if not found
-      settings = await Settings.create({ userId, userModel });
+      settings = await Settings.findOne({ userId, userModel }).lean();
+      if (!settings) {
+        settings = await Settings.create({ userId, userModel });
+      }
+      req.session.cachedSettings = settings; // Cache in session
     }
     
     // Determine status based on user's configured time
@@ -109,6 +112,13 @@ router.post('/api/mark-attendance', isAuthenticated, hasRole('admin', 'teacher')
     const [cutoffHours, cutoffMinutes] = settings.lateCutoffTime.split(':');
     cutoffTime.setHours(parseInt(cutoffHours), parseInt(cutoffMinutes), 0, 0);
     const status = now > cutoffTime ? 'late' : 'present';
+    
+    // Get student info first (single query)
+    const student = await Student.findById(studentId).select('fullName rollNo faceDescriptor').lean();
+    
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
     
     // Create attendance record
     const attendance = await Attendance.create({
@@ -122,41 +132,40 @@ router.post('/api/mark-attendance', isAuthenticated, hasRole('admin', 'teacher')
       timestamp: new Date()
     });
     
-    // Get student info for response
-    const student = await Student.findById(studentId).select('fullName rollNo faceDescriptor').lean();
-    
-    if (!student) {
-      return res.status(404).json({ error: 'Student not found' });
-    }
-    
-    // Update face descriptor using exponential moving average (incremental learning)
+    // Update face descriptor asynchronously (don't block response)
     // Only update if we have a new descriptor and confidence is high enough
     if (faceDescriptor && Array.isArray(faceDescriptor) && faceDescriptor.length === 128 && confidenceScore >= 0.6) {
       const existingDescriptor = student.faceDescriptor;
       
       if (existingDescriptor && existingDescriptor.length === 128) {
-        // Blend old and new descriptor using exponential moving average
-        // Alpha controls how much weight new detection gets (0.1 = 10% new, 90% old)
-        // Lower alpha = more stable, higher alpha = faster adaptation
-        const alpha = 0.15;
-        
-        const updatedDescriptor = existingDescriptor.map((oldVal, i) => {
-          return oldVal * (1 - alpha) + faceDescriptor[i] * alpha;
-        });
-        
-        // Normalize the descriptor to unit length
-        const magnitude = Math.sqrt(updatedDescriptor.reduce((sum, val) => sum + val * val, 0));
-        const normalizedDescriptor = updatedDescriptor.map(val => val / magnitude);
-        
-        // Update student's face descriptor
-        await Student.findByIdAndUpdate(studentId, {
-          faceDescriptor: normalizedDescriptor,
-          lastDescriptorUpdate: new Date(),
-          $inc: { descriptorUpdateCount: 1 }
+        // Run async without blocking
+        setImmediate(async () => {
+          try {
+            // Blend old and new descriptor using exponential moving average
+            const alpha = 0.15;
+            
+            const updatedDescriptor = existingDescriptor.map((oldVal, i) => {
+              return oldVal * (1 - alpha) + faceDescriptor[i] * alpha;
+            });
+            
+            // Normalize the descriptor to unit length
+            const magnitude = Math.sqrt(updatedDescriptor.reduce((sum, val) => sum + val * val, 0));
+            const normalizedDescriptor = updatedDescriptor.map(val => val / magnitude);
+            
+            // Update student's face descriptor
+            await Student.findByIdAndUpdate(studentId, {
+              faceDescriptor: normalizedDescriptor,
+              lastDescriptorUpdate: new Date(),
+              $inc: { descriptorUpdateCount: 1 }
+            });
+          } catch (err) {
+            console.error('Error updating face descriptor:', err);
+          }
         });
       }
     }
     
+    // Return immediately without waiting for descriptor update
     res.json({
       success: true,
       attendance: {

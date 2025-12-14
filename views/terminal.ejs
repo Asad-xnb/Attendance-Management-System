@@ -61,7 +61,7 @@
           
           <div class="relative bg-black aspect-video">
             <video id="videoElement" class="w-full h-full object-cover" autoplay muted playsinline></video>
-            <video id="preRecordedVideo" class="w-full h-full object-cover hidden" muted playsinline></video>
+            <video id="preRecordedVideo" class="w-full h-full object-cover hidden" muted playsinline preload="none"></video>
             <img id="ipCameraElement" class="w-full h-full object-cover hidden" />
             <canvas id="overlay" class="absolute top-0 left-0 w-full h-full"></canvas>
             
@@ -398,6 +398,7 @@
             
             // Load video
             preRecordedVideo.src = '/api/camera/video-stream';
+            preRecordedVideo.load(); // Explicitly load metadata
             
             await new Promise((resolve, reject) => {
               const timeout = setTimeout(() => reject(new Error('Video loading timeout')), 10000);
@@ -405,6 +406,9 @@
               preRecordedVideo.onloadedmetadata = () => {
                 clearTimeout(timeout);
                 document.getElementById('totalTime').textContent = formatTime(preRecordedVideo.duration);
+                // Ensure video is paused and at start
+                preRecordedVideo.currentTime = 0;
+                preRecordedVideo.pause();
                 resolve();
               };
               
@@ -432,8 +436,7 @@
             preRecordedVideo.onplay = updatePlayPauseButton;
             preRecordedVideo.onpause = updatePlayPauseButton;
             
-            // Auto-play the video
-            preRecordedVideo.play();
+            // Don't play yet - wait for models to load
             updatePlayPauseButton();
             
             cameraOffDiv.style.display = 'none';
@@ -532,6 +535,18 @@
           stopBtn.classList.remove('hidden');
           
           updateStatus('active', 'Recognizing...');
+          
+          // Now start video playback for pre-recorded video
+          if (isUsingPreRecordedVideo) {
+            const preRecordedVideo = document.getElementById('preRecordedVideo');
+            // Slow down playback to 0.75x so face detection can keep up
+            preRecordedVideo.playbackRate = 0.75;
+            document.getElementById('playbackSpeed').value = '0.75';
+            await preRecordedVideo.play();
+            updatePlayPauseButton();
+            console.log('Video playback started at 0.75x speed');
+          }
+          
           recognizeFaces();
         } catch (error) {
           console.error('Error:', error);
@@ -667,11 +682,14 @@
           return;
         }
 
+        // Use lower threshold for pre-recorded video to catch all faces
+        const scoreThreshold = isUsingPreRecordedVideo ? 0.3 : 0.5;
+        
         const detections = await faceapi.detectAllFaces(
           sourceElement, 
           new faceapi.TinyFaceDetectorOptions({ 
             inputSize: userSettings?.inputSize || 416,
-            scoreThreshold: 0.5 
+            scoreThreshold: scoreThreshold 
           })
         ).withFaceLandmarks().withFaceDescriptors();
         const resizedDetections = faceapi.resizeResults(detections, displaySize);
@@ -760,7 +778,13 @@
           ctx.fillText(labelText, box.x + 5, box.y - 7);
         });
         
-        setTimeout(detectFaces, 200);
+        // For pre-recorded video, run continuously without delay to catch every frame
+        // For live camera, use normal interval to avoid overload
+        if (isUsingPreRecordedVideo) {
+          detectFaces(); // No delay - immediate next iteration
+        } else {
+          setTimeout(detectFaces, 200);
+        }
       };
       
       detectFaces();
@@ -772,14 +796,19 @@
         return;
       }
       
-      if (markedStudents.has(studentId.toString())) return;
+      // Check and add to set immediately to prevent duplicates
+      const studentIdStr = studentId.toString();
+      if (markedStudents.has(studentIdStr)) return;
+      
+      // Add immediately to prevent race condition duplicates
+      markedStudents.add(studentIdStr);
       
       try {
         const response = await fetch('/terminal/api/mark-attendance', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            studentId: studentId.toString(), 
+            studentId: studentIdStr, 
             courseId: selectedCourseId, 
             classId: selectedClassId, 
             confidenceScore,
@@ -790,20 +819,26 @@
         if (!response.ok) {
           const errorData = await response.json();
           console.error('Attendance marking failed:', errorData.error);
+          // If failed and not already marked, remove from set
+          if (!errorData.alreadyMarked) {
+            markedStudents.delete(studentIdStr);
+          }
           return;
         }
         
         const data = await response.json();
         
         if (data.success) {
-          markedStudents.add(studentId.toString());
           addActivityItem(data.attendance);
           updateStats();
-        } else if (data.alreadyMarked) {
-          markedStudents.add(studentId.toString());
+        } else if (!data.alreadyMarked) {
+          // Remove if failed and not already marked in DB
+          markedStudents.delete(studentIdStr);
         }
       } catch (error) {
         console.error('Error marking attendance:', error);
+        // Remove from set on error
+        markedStudents.delete(studentIdStr);
       }
     }
 
